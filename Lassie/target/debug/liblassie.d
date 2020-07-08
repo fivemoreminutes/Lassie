@@ -1,0 +1,1 @@
+C:\Users\tcorb\Documents\Lassie\Code\Lassie\lassie\target\debug\liblassie.rlib: C:\Users\tcorb\Documents\Lassie\Code\Lassie\lassie\src\lib.rs C:\Users\tcorb\Documents\Lassie\Code\Lassie\lassie\src\main.rs
