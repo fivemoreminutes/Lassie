@@ -1,5 +1,5 @@
 [package]
-name = "Lassie"
+name = "lassie"
 version = "0.1.0"
 authors = ["tcorb"]
 edition = "2018"
