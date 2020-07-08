@@ -1,8 +1,8 @@
-extern crate chrono;
-
 mod communication;
 mod motor_calc;
+mod init;
 
+extern crate chrono;
 
 fn main() {
 
@@ -16,16 +16,13 @@ fn main() {
     println!("\nVersion Number {}", VERSION); 
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
-    // Initial Tasks - takes place in the init code
-    // establish communication with main computer by sending dummy packets
-    // check communication with arduinos
-    // run zeroing protocol to establish linkage locations
-    // start sending any sensor data to the main computer
-    // wait for commands from main computer
+
+    init::startup();
 
 loop {
     // main loop that will be used for control
     communication::test();
+    
     motor_calc::test();
     // call communication code - recieve
     // operation mode set, not sure what this will look like yet
