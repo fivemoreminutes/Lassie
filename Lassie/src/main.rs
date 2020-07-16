@@ -1,7 +1,6 @@
 mod communication;
 mod init;
 mod motor_calc;
-
 extern crate chrono;
 
 fn main() {
@@ -20,7 +19,6 @@ fn main() {
     loop {
         // main loop that will be used for control
         communication::test();
-
         motor_calc::test();
         // call communication code - recieve
         // operation mode set, not sure what this will look like yet
