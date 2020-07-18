@@ -1,66 +1,32 @@
+use std::io::prelude::*;
+use std::net::TcpStream;
+/* 
+let mut Address: String = "127.0.0.1".to_owned();
+let port: &str = ":88888";
+
+Address.push_str(port); */
+/*
+pub fn send_data( Address: & String, data: &mut  [f32) -> std::io::Result<()> {
+    let mut stream = TcpStream::connect(Address)?;
+    let mut pos = 0;
+
+    while pos <data.len(){
+        let bytes_written = stream.write(&data[pos..])?;
+        pos += bytes_written;
+    }
+
+    Ok(())
+}
+*/
+
+pub fn recieve_data(address: & String) -> std::io::Result<()> {
+    let mut stream = TcpStream::connect(address)?;
+    let mut buffer = Vec::new();
+    stream.read_to_end(&mut buffer)?;
+    Ok(())
+}
+
 pub fn test() {
     println!("test");
 }
 
-/*
-/************************************************************************************
-arduino_talk()
-
-Arduino talk takes in input data and then sends it to the arduinos over i2c
-
-Likely inputs will be address (which arduino), and some array/vector of commands
-************************************************************************************/
-pub fn arduino_talk(){
-
-
-
-}
-
-
-/************************************************************************************
-computer_talk()
-
-Computer talk takes in input data and then sends it to the Computer over wifi
-communication
-
-Likely inputs will be address, and some array/vector of sensor data
-************************************************************************************/
-pub fn computer_talk(){
-
-
-
-
-}
-
-
-/************************************************************************************
-arduino_listen()
-
-Arduino listen will take data from the arduinos over i2c
-
-Likely inputs will be address (which arduino)
-************************************************************************************/
-pub fn arduino_listen(){
-
-
-
-
-}
-
-
-/************************************************************************************
-computer_listen()
-
-Computer listen will likely not have any input data and then receive controller commands
-from the Computer over wifi communication
-
-There will likely be no inputs
-************************************************************************************/
-pub fn computer_listen(){
-
-
-
-
-
-}
-*/
