@@ -1,55 +1,93 @@
 use byteorder::{ByteOrder, LittleEndian};
 use std::io::prelude::*;
 use std::net::TcpStream;
-/*
-let mut Address: String = "127.0.0.1".to_owned();
-let port: &str = ":88888";
+use std::process::Command;
 
-Address.push_str(port); */
 
-pub fn send_data(address: &String, data: [f32; 4]) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(address)?;
-    let buf = to_u8(data);
-    stream.write_all(buf)?;
 
-    Ok(())
+/******************************************************************************************
+ * send_data <- takes in the pi address and port, as well as data in a ver<f32> format
+ * writes data to the port at the listed address
+ * send_data -> outputs success/ failure of write
+ * ***************************************************************************************/
+
+pub fn send_data(address: &str, data: Vec<f32>) -> std::io::Result<()> {
+    let mut stream = TcpStream::connect(address)?; //connecting to port
+    let mut buf = Vec::new(); //creating new buffer for bytewise data
+    to_u8(&mut buf, &data); // converting f32 to bytes and writing to buffer
+    stream.write_all(&buf)?; //writing the buffer to socket
+    Ok(()) //outputting a success to main
 }
 
-pub fn recieve_data(address: &String) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(address)?;
-    let mut buffer = Vec::new();
-    stream.read_to_end(&mut buffer)?;
-    let mut data = to_f32_array(&buffer);
-    Ok(())
+
+
+/******************************************************************************************
+ * recieve_data <- takes in the pi address and port, as well as an empty data vector 
+ * reads from the port at the address and writes to the empty vector that can be accessed in main
+ * recieve_data -> outputs success/ failure of read
+ * ***************************************************************************************/
+
+pub fn recieve_data(address: &str, data: &mut Vec<f32>) ->  std::io::Result<()> {
+    
+    let mut stream = TcpStream::connect(address)?; //connecting to port
+    let mut buffer = Vec::new(); //creating a buffer to read data into t
+    stream.read_to_end(&mut buffer)?; //reading from the port to reference of buffer to a vector to capture all data
+    
+    ////////////// This is for Testing Only ///////////////////////////////////////////////////
+    //data.push(2.5); data.push(3.7); data.push(4.6);
+    //to_u8(&mut buffer, data);
+        
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    to_f32_vec(&buffer, data); //converting the buffer to a f32 array
+    Ok(()) //outputting success/error to main
 }
 
-fn to_u8<'a>(data: [f32; 4]) -> &'a [u8] {
-    let mut buffer = data.to_vec();
-    let p = buffer.as_mut_ptr();
-    let len = buffer.len();
-    //let cap = buffer.capacity();
 
-    unsafe { std::slice::from_raw_parts(p as *mut _, len) }
-}
 
-fn to_f32_array(buffer: &Vec<u8>) -> [f32; 4] {
-    let len = buffer.len();
-    let mut done = false;
-    let mut array: [f32; 4] = [0.0; 4];
+/******************************************************************************************
+ * to_u8 <- takes in a empty buffer vector and a data vector
+ * takes the data and converts it to f32 using the byte order library
+ * to_u8 -> nothing formally output, because it writes to the location of the buffer
+ * ***************************************************************************************/
+
+fn to_u8( buffer: &mut Vec<u8>, data: &Vec<f32>) {
+    let size = 4*data.len(); //number of bytes needed to write
+    let mut bytes = vec![0;size]; //essentially the buffer
+    LittleEndian::write_f32_into(&data, &mut bytes ); //writes data to the bytes 
+
+    let mut done = false;       // might rework this later to reduce redefinitions, but writes
+    let len = bytes.len();      // each part to its respective location in buffer array
     let mut i = 0;
-    let mut j = 4;
+    while !done{
+        if len > i{
+            buffer.push(bytes[i]);
+            i += 1;
+        } else {done = true;}
+    }
+}
 
+
+/******************************************************************************************
+ * to_f32_vec <- takes in a filled buffer and an empty f32 vector
+ * writes to the f32 vector using the byte order library in a wile loop
+ * to_f32_vec -> nothing formally returned, but writes to location of f32 vector
+ * ***************************************************************************************/
+
+fn to_f32_vec(buffer: &Vec<u8>, data: &mut Vec<f32>){
+    let len = buffer.len(); //finds the length of the buffer data
+    let mut done = false; //qualifier for while loop
+    let mut i = 0; //lower index of buffer slice location
+    let mut j = 3; //upper index of buffer slice location
     while !done {
-        array[i] = LittleEndian::read_f32(&buffer[i..=4]);
-        i = i + 4;
-        j = j + 4;
+        data.push(LittleEndian::read_f32(&buffer[i..=j])); //writes to the data location
+        i += 4; j +=4; //iterates
         if i == len {
-            done = true;
+            done = true; //ends when it reaches the end of the buffer vector
         }
     }
-    array
 }
 
+//this is a simple test function to ensure the module is loaded
 pub fn test() {
     println!("test");
 }

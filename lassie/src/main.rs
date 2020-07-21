@@ -20,6 +20,13 @@ fn main() {
         // main loop that will be used for control
         communication::test();
         motor_calc::test();
+        
+        let address = "test";
+        let mut data = Vec::new();
+        communication::recieve_data(address , &mut data);
+        println!("Values: {}, {}, {} ", data[0],data[1],data[2]);
+        
+        //println!("Values: {}",data[3]);
         // call communication code - recieve
         // operation mode set, not sure what this will look like yet
         // call movement code
