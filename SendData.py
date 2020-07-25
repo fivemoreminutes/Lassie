@@ -22,9 +22,12 @@ def comm_init(IP, Port):
 def send_data(s, Data):
     l = len(Data)
     try:
-        for x in range(l):
-            info += s.send(pack('f', Data[x]))
-        return 1
+        # I am not sure which of these functions will be better, though I assume it will be this one
+        s.send(pack('f', Data))
+
+        # for x in range(l):
+        #    info += s.send(pack('f', Data[x]))
+        # return 1
     except ConnectionError:
         return -1
     except TimeoutError:
