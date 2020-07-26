@@ -5,22 +5,32 @@ from bitstring import BitArray
 # Initiate communication with ras-pi at it's IP and port number
 
 
+
 def comm_init(IP, Port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(5)
     try:  # if there is an error it should return the error type to main
-        s.connect(IP, Port)
+        s.connect((IP, Port))
         return s
     except ConnectionError:
         return -1
     except TimeoutError:
         return -2
 
+def comm_close(s):
+    s.close()
+
+
+def InfoHandle(Data):
+    CompiledData = [255.0, 0, 255.0]
+
+    return CompiledData
 
 # These functions are egregiously untested and need to be checked
-
+ 
 def send_data(s, Data):
     l = len(Data)
+    Data = InfoHandle(Data)
     try:
         # I am not sure which of these functions will be better, though I assume it will be this one
         s.send(pack('f', Data))
