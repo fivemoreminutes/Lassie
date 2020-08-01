@@ -1,7 +1,8 @@
 use byteorder::{ByteOrder, LittleEndian};
 use std::io::prelude::*;
 use std::net::TcpStream;
-use std::process::Command;
+use std::net::TcpListener;
+
 
 /******************************************************************************************
  * send_data <- takes in the pi address and port, as well as data in a ver<f32> format
@@ -9,7 +10,15 @@ use std::process::Command;
  * send_data -> outputs success/ failure of write
  * ***************************************************************************************/
 
-pub fn send_data(address: &str, data: Vec<f32>) -> std::io::Result<()> {
+pub fn listen() {
+    let listener = TcpListener::bind("127.0.0.2:80").unwrap();
+    match listener.accept() {
+        Ok((_socket,addr)) => println!("new client: {:?}", addr),
+        Err(e) => println!("Counld't connect to client: {:?}", e)
+    }
+}
+
+pub fn send_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
     let mut stream = TcpStream::connect(address)?; //connecting to port
     let mut buf = Vec::new(); //creating new buffer for bytewise data
     to_u8(&mut buf, &data); // converting f32 to bytes and writing to buffer
@@ -33,6 +42,19 @@ pub fn recieve_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
     ///////////////////////////////////////////////////////////////////////////////////////////
     to_f32_vec(&buffer, data); //converting the buffer to a f32 array
     Ok(()) //outputting success/error to main
+}
+
+pub fn wifi_comms(address: &str, data_r: &mut Vec<f32>, data_s: &mut Vec<f32>) -> std::io::Result<()> {
+    let mut stream = TcpStream::connect(address)?; //connecting to port
+    let mut buffer = Vec::new(); //creating a buffer to read data into t
+    stream.read_to_end(&mut buffer)?; //reading from the port to reference of buffer to a vector to capture all data
+    to_f32_vec(&buffer, data_r); 
+
+    let mut buf = Vec::new(); 
+    to_u8(&mut buf, &data_s); 
+    stream.write_all(&buf)?;
+
+    Ok(())
 }
 
 /******************************************************************************************

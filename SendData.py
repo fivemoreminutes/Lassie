@@ -7,15 +7,46 @@ from bitstring import BitArray
 
 
 def comm_init(IP, Port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(5)
-    try:  # if there is an error it should return the error type to main
-        s.connect((IP, Port))
-        return s
+    itr = 1
+    while True
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        try:  # if there is an error it should return the error type to main
+            s.connect((IP, Port))
+            conn = True
+        except ConnectionError:
+            print("There was an error connecting to pi")
+            conn = False
+        except TimeoutError:
+            print("The connection timed out")
+            conn = False
+
+        if conn == True:
+            break
+        else:
+            print("Connection Attempt: ", itr)
+            itr += 1
+    return s
+    
+
+
+def data_exhcange(s, Data):
+    Data = InfoHandle(Data)
+    try:   
+        s.send(pack('f', Data))
     except ConnectionError:
         return -1
     except TimeoutError:
         return -2
+
+    BufferSize = 1024
+    try:
+        Buffer = s.recv(BufferSize)
+        Data = unpack('f', Buffer)
+        return Data
+    except ConnectionError:
+        return -1
+
 
 def comm_close(s):
     s.close()

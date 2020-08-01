@@ -15,14 +15,13 @@ class Application(tk.Frame):
         self.text1.set("Connection Status: Not Connected")
         self.text_color.set("red")
         self.Connected = False
-
-
-        self.create_widgets()
         self.configure(bg = 'snow3')
-  
+        self.Data = [0.0,0.0,0.0,0.0,0.0]
         for x in range(1,4):
             tk.Grid.columnconfigure(self,x,weight = 1)
             tk.Grid.rowconfigure(self,x,weight = 1) 
+
+        self.create_widgets()
 
     def create_widgets(self):
         
@@ -60,33 +59,34 @@ class Application(tk.Frame):
     def up_arrow_press(self):
         if self.Connected == True:
             print("Up Arrow Pressed")
-            SD.send_data(s,4.1)
+            self.Data(1) = 3.2
         else:
             print(ConectionError)
 
     def down_arrow_press(self):
         if self.Connected == True:
             print("Down Arrow Pressed")
-            SD.send_data(s,4.2)
+            self.Data(2) = 3.2
         else:
             print(ConectionError)
 
     def right_arrow_press(self):
         if self.Connected == True:
             print("right Arrow Pressed")
-            SD.send_data(s,4.3)
+            self.Data(3) = 3.2
         else:
             print(ConectionError)
 
     def left_arrow_press(self):
         if self.Connected == True:
             print("left Arrow Pressed")
-            SD.send_data(s, 4.4)
+            self.Data(4) = 3.2
         else:
             print(ConectionError)
 
     def test_button_press(self):
         print("test")
+        self.Data(0) = 3.2
 
     def disconnect(self):
         if self.Connected == True:
@@ -116,7 +116,13 @@ root.geometry("1000x900")
 
 app = Application(master=root)
 
+s = SD.comm_init(IP,PORT)
 
 while True:
     root.update_idletasks()
     root.update()
+    try:
+        rec_data = SD.data_exhcange(s,app.Data)
+    except:
+        print("There was an error in sending data")
+        
