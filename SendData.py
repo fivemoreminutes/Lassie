@@ -8,7 +8,7 @@ from bitstring import BitArray
 
 def comm_init(IP, Port):
     itr = 1
-    while True
+    while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(5)
         try:  # if there is an error it should return the error type to main

@@ -59,34 +59,34 @@ class Application(tk.Frame):
     def up_arrow_press(self):
         if self.Connected == True:
             print("Up Arrow Pressed")
-            self.Data(1) = 3.2
+            self.Data[0] = 3.2
         else:
             print(ConectionError)
 
     def down_arrow_press(self):
         if self.Connected == True:
             print("Down Arrow Pressed")
-            self.Data(2) = 3.2
+            self.Data[0] = 3.2
         else:
             print(ConectionError)
 
     def right_arrow_press(self):
         if self.Connected == True:
             print("right Arrow Pressed")
-            self.Data(3) = 3.2
+            self.Data[0] = 3.2
         else:
             print(ConectionError)
 
     def left_arrow_press(self):
         if self.Connected == True:
             print("left Arrow Pressed")
-            self.Data(4) = 3.2
+            self.Data[0] = 3.2
         else:
             print(ConectionError)
 
     def test_button_press(self):
         print("test")
-        self.Data(0) = 3.2
+        self.Data[0] = 3.2
 
     def disconnect(self):
         if self.Connected == True:
@@ -116,6 +116,9 @@ root.geometry("1000x900")
 
 app = Application(master=root)
 
+IP = "192.168.1.2"
+PORT = 80
+
 s = SD.comm_init(IP,PORT)
 
 while True:
@@ -123,6 +126,8 @@ while True:
     root.update()
     try:
         rec_data = SD.data_exhcange(s,app.Data)
+        print(rec_data)
     except:
         print("There was an error in sending data")
+    app.Data = [0.0,0.0,0.0,0.0,0.0]
         
