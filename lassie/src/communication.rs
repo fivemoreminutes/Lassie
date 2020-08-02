@@ -12,7 +12,7 @@ use std::net::SocketAddr;
  * ***************************************************************************************/
 
 pub fn listen() -> TcpStream {
-    let listener = TcpListener::bind("192.168.1.2:80").unwrap();
+    let listener = TcpListener::bind("192.168.1.3:2000").unwrap();
     listener.accept().unwrap().0
 
 
@@ -55,20 +55,20 @@ pub fn recieve_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
     //data.push(2.5); data.push(3.7); data.push(4.6);
     //to_u8(&mut buffer, data);
     ///////////////////////////////////////////////////////////////////////////////////////////
-    to_f32_vec(&buffer, data); //converting the buffer to a f32 array
+    //to_f32_vec(&buffer, data); //converting the buffer to a f32 array
     Ok(()) //outputting success/error to main
 }
 
 pub fn wifi_comms(stream: &mut TcpStream, data_r: &mut Vec<f32>, data_s: &mut Vec<f32>) -> std::io::Result<()> {
+    
     //let mut stream = TcpStream::connect(address)?; //connecting to port
-    let mut buffer = Vec::new(); //creating a buffer to read data into t
-    stream.read_to_end(&mut buffer)?; //reading from the port to reference of buffer to a vector to capture all data
-    to_f32_vec(&buffer, data_r); 
-
+    let mut buffer = [0; 20]; //Vec::new(); //creating a buffer to read data into t
+    stream.read(&mut buffer[..])?; //reading from the port to reference of buffer to a vector to capture all data
+    
+    to_f32_vec(buffer, data_r); 
     let mut buf = Vec::new(); 
     to_u8(&mut buf, &data_s); 
-    stream.write_all(&buf)?;
-
+    stream.write(&buffer[..])?;
     Ok(())
 }
 
@@ -102,7 +102,7 @@ fn to_u8(buffer: &mut Vec<u8>, data: &Vec<f32>) {
  * to_f32_vec -> nothing formally returned, but writes to location of f32 vector
  * ***************************************************************************************/
 
-fn to_f32_vec(buffer: &Vec<u8>, data: &mut Vec<f32>) {
+fn to_f32_vec(buffer: [u8;20], data: &mut Vec<f32>) {
     let len = buffer.len(); //finds the length of the buffer data
     let mut done = false; //qualifier for while loop
     let mut i = 0; //lower index of buffer slice location
