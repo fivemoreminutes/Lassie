@@ -2,7 +2,8 @@ use byteorder::{ByteOrder, LittleEndian};
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::TcpListener;
-
+use std::io::Result;
+use std::net::SocketAddr;
 
 /******************************************************************************************
  * send_data <- takes in the pi address and port, as well as data in a ver<f32> format
@@ -10,12 +11,26 @@ use std::net::TcpListener;
  * send_data -> outputs success/ failure of write
  * ***************************************************************************************/
 
-pub fn listen() {
-    let listener = TcpListener::bind("127.0.0.2:80").unwrap();
-    match listener.accept() {
+pub fn listen() -> TcpStream {
+    let listener = TcpListener::bind("192.168.1.2:80").unwrap();
+    listener.accept().unwrap().0
+
+
+/*     match listener.accept() {
         Ok((_socket,addr)) => println!("new client: {:?}", addr),
         Err(e) => println!("Counld't connect to client: {:?}", e)
-    }
+    } */
+
+
+/*     for stream in listerner.incoming(){
+        Ok(stream) =>{
+            println!("New Connection: {}", stream.peer_addr().unwrap());
+            stream
+        }
+        Err(_) => {
+            println 
+        }
+    } */
 }
 
 pub fn send_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
@@ -44,8 +59,8 @@ pub fn recieve_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
     Ok(()) //outputting success/error to main
 }
 
-pub fn wifi_comms(address: &str, data_r: &mut Vec<f32>, data_s: &mut Vec<f32>) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(address)?; //connecting to port
+pub fn wifi_comms(stream: &mut TcpStream, data_r: &mut Vec<f32>, data_s: &mut Vec<f32>) -> std::io::Result<()> {
+    //let mut stream = TcpStream::connect(address)?; //connecting to port
     let mut buffer = Vec::new(); //creating a buffer to read data into t
     stream.read_to_end(&mut buffer)?; //reading from the port to reference of buffer to a vector to capture all data
     to_f32_vec(&buffer, data_r); 
