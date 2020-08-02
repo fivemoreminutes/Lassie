@@ -16,7 +16,7 @@ class Application(tk.Frame):
         self.text_color.set("red")
         self.Connected = False
         self.configure(bg = 'snow3')
-        self.Data = [0.0,0.0,0.0,0.0,0.0]
+        self.Data = [0.01,0.01,0.01,0.01,0.01]
         for x in range(1,4):
             tk.Grid.columnconfigure(self,x,weight = 1)
             tk.Grid.rowconfigure(self,x,weight = 1) 
@@ -59,28 +59,28 @@ class Application(tk.Frame):
     def up_arrow_press(self):
         if self.Connected == True:
             print("Up Arrow Pressed")
-            self.Data[0] = 3.2
+            self.Data[1] = 3.2
         else:
             print(ConectionError)
 
     def down_arrow_press(self):
         if self.Connected == True:
             print("Down Arrow Pressed")
-            self.Data[0] = 3.2
+            self.Data[2] = 3.2
         else:
             print(ConectionError)
 
     def right_arrow_press(self):
         if self.Connected == True:
             print("right Arrow Pressed")
-            self.Data[0] = 3.2
+            self.Data[3] = 3.2
         else:
             print(ConectionError)
 
     def left_arrow_press(self):
         if self.Connected == True:
             print("left Arrow Pressed")
-            self.Data[0] = 3.2
+            self.Data[4] = 3.2
         else:
             print(ConectionError)
 
@@ -90,7 +90,7 @@ class Application(tk.Frame):
 
     def disconnect(self):
         if self.Connected == True:
-            SD.comm_close(s)
+            self.s.close()
             self.Connected = False
             self.text1.set("Connection Status: Not Connected") 
             self.connection_status.config(fg = "red")
@@ -116,18 +116,25 @@ root.geometry("1000x900")
 
 app = Application(master=root)
 
-IP = "192.168.1.2"
-PORT = 80
+IP = "192.168.1.3"
+PORT = 2000
 
-s = SD.comm_init(IP,PORT)
+app.s = SD.comm_init(IP,PORT)
+app.Connected = True
+app.text1.set("Connection Status: Connected") 
+app.connection_status.config(fg = "green")
 
 while True:
     root.update_idletasks()
     root.update()
-    try:
-        rec_data = SD.data_exhcange(s,app.Data)
-        print(rec_data)
-    except:
-        print("There was an error in sending data")
-    app.Data = [0.0,0.0,0.0,0.0,0.0]
+    if app.Connected == True:
+        try:
+            rec_data = SD.data_exhcange(app.s,app.Data)
+            print(rec_data)
+        except:
+            print("There was an error in sending data")
+            print(app.s)
+
+        
+    #app.Data = [0.01,0.01,0.01,0.01,0.01]
         

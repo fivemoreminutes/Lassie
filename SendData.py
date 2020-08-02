@@ -10,7 +10,6 @@ def comm_init(IP, Port):
     itr = 1
     while True:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(5)
         try:  # if there is an error it should return the error type to main
             s.connect((IP, Port))
             conn = True
@@ -29,11 +28,13 @@ def comm_init(IP, Port):
     return s
     
 
-
 def data_exhcange(s, Data):
-    Data = InfoHandle(Data)
+    info = 0
     try:   
-        s.send(pack('f', Data))
+        for x in range(len(Data)):
+            info += s.send(pack('f', Data[x]))
+
+        print("Sending")
     except ConnectionError:
         return -1
     except TimeoutError:
@@ -41,8 +42,10 @@ def data_exhcange(s, Data):
 
     BufferSize = 1024
     try:
+        print("Recieving")
         Buffer = s.recv(BufferSize)
         Data = unpack('f', Buffer)
+
         return Data
     except ConnectionError:
         return -1
