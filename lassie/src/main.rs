@@ -14,32 +14,22 @@ fn main() {
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
 
-    let mut com = init::startup();
+    let mut com = init::startup(); //calling initial connection to the laptop
 
     loop {
-        // main loop that will be used for control
-        //communication::test();
-        //motor_calc::test();
 
-        let mut rdata = Vec::new();
+        let mut rdata = Vec::new(); //init new vectors for data
         let mut sdata = Vec::new();
-        com.rdata = rdata;
+        //stage data to be sent by placing it in the coms object
         com.sdata = sdata;
-        com.wifi_comms();
+        com.wifi_comms(); //sending the data
 
-        let l = com.rdata.len();
+        let l = com.rdata.len(); //outputting the data 
         for x in 0..l {
             println!("{}",com.rdata[x]);
         }
         println!("\n");
-        
-        // call communication code - recieve
-        // operation mode set, not sure what this will look like yet
-        // call movement code
-        // call send sensor data
-        // call communication code - send
-
-        //break; // temporary break to allow the code to compile
+  
     }
 
 }

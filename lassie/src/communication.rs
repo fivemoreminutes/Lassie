@@ -3,12 +3,6 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::TcpListener;
 
-/******************************************************************************************
- * send_data <- takes in the pi address and port, as well as data in a ver<f32> format
- * writes data to the port at the listed address
- * send_data -> outputs success/ failure of write
- * ***************************************************************************************/
-
  pub struct Comms<'a> {
     pub address: &'a str,
     pub stream: Option<TcpStream>,
@@ -17,7 +11,7 @@ use std::net::TcpListener;
     pub connection: bool,
     pub buffer: Vec<u8>,
 }
-
+//Comms is my communication variable that will also be used for spi when I start work on that
 impl Comms<'_> {
 
 pub fn listen<'a>(&mut self) {
@@ -34,10 +28,10 @@ pub fn listen<'a>(&mut self) {
 }
 
 pub fn wifi_comms(&mut self) {
-    
-    //let mut stream = TcpStream::connect(address)?; //connecting to port
+
     self.buffer = Vec::new(); //creating a buffer to read data into t
    
+    //the following checks if I am connected to the laptop and then writes data if possible
     if self.connection == false { 
         println!("Not Connected!!!") }
     else{
@@ -51,9 +45,7 @@ pub fn wifi_comms(&mut self) {
 }
 
 /******************************************************************************************
- * to_u8 <- takes in a empty buffer vector and a data vector
  * takes the data and converts it to f32 using the byte order library
- * to_u8 -> nothing formally output, because it writes to the location of the buffer
  * ***************************************************************************************/
 
 fn to_u8(&mut self) {
@@ -61,8 +53,8 @@ fn to_u8(&mut self) {
     let mut bytes = vec![0; size]; //essentially the buffer
     LittleEndian::write_f32_into(&self.sdata, &mut bytes); //writes data to the bytes
 
-    let mut done = false; // might rework this later to reduce redefinitions, but writes
-    let len = bytes.len(); // each part to its respective location in buffer array
+    let mut done = false; 
+    let len = bytes.len(); 
     let mut i = 0;
     while !done {
         if len > i {
@@ -75,9 +67,7 @@ fn to_u8(&mut self) {
 }
 
 /******************************************************************************************
- * to_f32_vec <- takes in a filled buffer and an empty f32 vector
  * writes to the f32 vector using the byte order library in a while loop
- * to_f32_vec -> nothing formally returned, but writes to location of f32 vector
  * ***************************************************************************************/
 
 fn to_f32_vec(&mut self) {
