@@ -3,8 +3,6 @@ mod init;
 mod motor_calc;
 extern crate chrono;
 
-
-
 fn main() {
     // this code will implimented on the raspberry pi and communicate with the the host computer
 
@@ -16,20 +14,24 @@ fn main() {
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
 
-    let mut stream = init::startup();
+    let mut com = init::startup();
 
     loop {
         // main loop that will be used for control
         //communication::test();
         //motor_calc::test();
 
-        let mut data_r = Vec::new();
-        let mut data_s = Vec::new();
-        
-        communication::wifi_comms(&mut stream, &mut data_r, &mut data_s);
-        //communication::recieve_data(address, &mut data);
-        println!("{} {} {} {} {}\n",data_r[0],data_r[1],data_r[2],data_r[3],data_r[4]);
-        //communication::send_data(address, &mut data);
+        let mut rdata = Vec::new();
+        let mut sdata = Vec::new();
+        com.rdata = rdata;
+        com.sdata = sdata;
+        com.wifi_comms();
+
+        let l = com.rdata.len();
+        for x in 0..l {
+            println!("{}",com.rdata[x]);
+        }
+        println!("\n");
         
         // call communication code - recieve
         // operation mode set, not sure what this will look like yet

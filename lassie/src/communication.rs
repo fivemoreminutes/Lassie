@@ -2,8 +2,6 @@ use byteorder::{ByteOrder, LittleEndian};
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::TcpListener;
-use std::io::Result;
-use std::net::SocketAddr;
 
 /******************************************************************************************
  * send_data <- takes in the pi address and port, as well as data in a ver<f32> format
@@ -11,65 +9,45 @@ use std::net::SocketAddr;
  * send_data -> outputs success/ failure of write
  * ***************************************************************************************/
 
-pub fn listen() -> TcpStream {
-    let listener = TcpListener::bind("192.168.1.3:2000").unwrap();
-    listener.accept().unwrap().0
+ pub struct Comms<'a> {
+    pub address: &'a str,
+    pub stream: Option<TcpStream>,
+    pub rdata: Vec<f32>,
+    pub sdata: Vec<f32>,
+    pub connection: bool,
+    pub buffer: Vec<u8>,
+}
 
+impl Comms<'_> {
 
-/*     match listener.accept() {
-        Ok((_socket,addr)) => println!("new client: {:?}", addr),
-        Err(e) => println!("Counld't connect to client: {:?}", e)
-    } */
-
-
-/*     for stream in listerner.incoming(){
-        Ok(stream) =>{
-            println!("New Connection: {}", stream.peer_addr().unwrap());
-            stream
+pub fn listen<'a>(&mut self) {
+    let listener = TcpListener::bind(self.address).unwrap();
+    println!("\nWaiting for new connection");
+    match listener.accept() {
+        Ok((socket,addr)) => {
+            self.stream = Some(socket);
+            self.connection = true;
+            println!("\nConnected to new client: {}", addr)
         }
-        Err(_) => {
-            println 
-        }
-    } */
+        Err(e) => println!("\nCould not connect to client: {}", e)
+    }
 }
 
-pub fn send_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(address)?; //connecting to port
-    let mut buf = Vec::new(); //creating new buffer for bytewise data
-    to_u8(&mut buf, &data); // converting f32 to bytes and writing to buffer
-    stream.write_all(&buf)?; //writing the buffer to socket
-    Ok(()) //outputting a success to main
-}
-
-/******************************************************************************************
- * recieve_data <- takes in the pi address and port, as well as an empty data vector
- * reads from the port at the address and writes to the empty vector that can be accessed in main
- * recieve_data -> outputs success/ failure of read
- * ***************************************************************************************/
-
-pub fn recieve_data(address: &str, data: &mut Vec<f32>) -> std::io::Result<()> {
-    let mut stream = TcpStream::connect(address)?; //connecting to port
-    let mut buffer = Vec::new(); //creating a buffer to read data into t
-    stream.read_to_end(&mut buffer)?; //reading from the port to reference of buffer to a vector to capture all data
-    ////////////// This is for Testing Only ///////////////////////////////////////////////////
-    //data.push(2.5); data.push(3.7); data.push(4.6);
-    //to_u8(&mut buffer, data);
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    //to_f32_vec(&buffer, data); //converting the buffer to a f32 array
-    Ok(()) //outputting success/error to main
-}
-
-pub fn wifi_comms(stream: &mut TcpStream, data_r: &mut Vec<f32>, data_s: &mut Vec<f32>) -> std::io::Result<()> {
+pub fn wifi_comms(&mut self) {
     
     //let mut stream = TcpStream::connect(address)?; //connecting to port
-    let mut buffer = [0; 20]; //Vec::new(); //creating a buffer to read data into t
-    stream.read(&mut buffer[..])?; //reading from the port to reference of buffer to a vector to capture all data
-    
-    to_f32_vec(buffer, data_r); 
-    let mut buf = Vec::new(); 
-    to_u8(&mut buf, &data_s); 
-    stream.write(&buffer[..])?;
-    Ok(())
+    self.buffer = Vec::new(); //creating a buffer to read data into t
+   
+    if self.connection == false { 
+        println!("Not Connected!!!") }
+    else{
+        self.stream.as_mut().unwrap().read(&mut self.buffer); //reading from the port to reference of buffer to a vector to capture all data 
+        self.to_f32_vec(); 
+        self.buffer = Vec::new(); 
+
+        self.to_u8(); 
+        self.stream.as_mut().unwrap().write(&self.buffer);
+    }
 }
 
 /******************************************************************************************
@@ -78,17 +56,17 @@ pub fn wifi_comms(stream: &mut TcpStream, data_r: &mut Vec<f32>, data_s: &mut Ve
  * to_u8 -> nothing formally output, because it writes to the location of the buffer
  * ***************************************************************************************/
 
-fn to_u8(buffer: &mut Vec<u8>, data: &Vec<f32>) {
-    let size = 4 * data.len(); //number of bytes needed to write
+fn to_u8(&mut self) {
+    let size = 4 * self.sdata.len(); //number of bytes needed to write
     let mut bytes = vec![0; size]; //essentially the buffer
-    LittleEndian::write_f32_into(&data, &mut bytes); //writes data to the bytes
+    LittleEndian::write_f32_into(&self.sdata, &mut bytes); //writes data to the bytes
 
     let mut done = false; // might rework this later to reduce redefinitions, but writes
     let len = bytes.len(); // each part to its respective location in buffer array
     let mut i = 0;
     while !done {
         if len > i {
-            buffer.push(bytes[i]);
+            self.buffer.push(bytes[i]);
             i += 1;
         } else {
             done = true;
@@ -102,13 +80,13 @@ fn to_u8(buffer: &mut Vec<u8>, data: &Vec<f32>) {
  * to_f32_vec -> nothing formally returned, but writes to location of f32 vector
  * ***************************************************************************************/
 
-fn to_f32_vec(buffer: [u8;20], data: &mut Vec<f32>) {
-    let len = buffer.len(); //finds the length of the buffer data
+fn to_f32_vec(&mut self) {
+    let len = self.buffer.len(); //finds the length of the buffer data
     let mut done = false; //qualifier for while loop
     let mut i = 0; //lower index of buffer slice location
     let mut j = 3; //upper index of buffer slice location
     while !done {
-        data.push(LittleEndian::read_f32(&buffer[i..=j])); //writes to the data location
+        self.rdata.push(LittleEndian::read_f32(&self.buffer[i..=j])); //writes to the data location
         i += 4;
         j += 4; //iterates
         if i == len {
@@ -116,8 +94,4 @@ fn to_f32_vec(buffer: [u8;20], data: &mut Vec<f32>) {
         }
     }
 }
-
-//this is a simple test function to ensure the module is loaded
-pub fn test() {
-    println!("test");
 }
