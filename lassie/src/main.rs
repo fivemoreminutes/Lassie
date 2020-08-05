@@ -18,7 +18,7 @@ fn main() {
 
     loop {
 
-        let mut rdata = Vec::new(); //init new vectors for data
+        let mut rdata: std::vec::Vec<f32> = Vec::new(); //init new vectors for data
         let mut sdata = Vec::new();
         //stage data to be sent by placing it in the coms object
         com.sdata = sdata;

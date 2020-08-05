@@ -15,6 +15,7 @@ class Application(tk.Frame):
         self.text1.set("Connection Status: Not Connected")
         self.text_color.set("red")
         self.Connected = False
+        
         self.configure(bg = 'snow3')
         self.Data = [0.01,0.01,0.01,0.01,0.01]
         for x in range(1,4):

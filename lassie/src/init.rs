@@ -9,7 +9,7 @@ pub fn startup<'a>() -> Comms<'a> {
         rdata: Vec::new(),
         sdata: Vec::new(),
         connection: false,
-        buffer: Vec::new(),
+        buffer: [0;4],
     };
     com.listen();
     com
