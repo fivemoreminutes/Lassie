@@ -16,7 +16,8 @@ use std::net::TcpListener;
 impl Comms<'_> {
 
 pub fn listen<'a>(&mut self) {
-    let listener = TcpListener::bind(self.address).unwrap();
+    println!("{}",self.address);
+    let listener = TcpListener::bind(&self.address).unwrap();
     println!("\nWaiting for new connection");
     match listener.accept() {
         Ok((socket,addr)) => {
@@ -29,8 +30,12 @@ pub fn listen<'a>(&mut self) {
 }
 
 pub fn wifi_comms(&mut self) {
-    let mut end = "end";
-    let mut start = "up";
+    let mut end = &[0;4];
+    let mut start = &[0;4];
+
+    let start_c = "star".as_bytes();
+    let end_c = "done".as_bytes();
+
     let mut buffer = [0;4]; //creating a buffer to read data into t
     let mut temp = Vec::new();
     //the following checks if I am connected to the laptop and then writes data if possible
@@ -40,16 +45,26 @@ pub fn wifi_comms(&mut self) {
     else{
 
         self.stream.as_mut().unwrap().read(&mut buffer[..]); //reading from the port to reference of buffer to a vector to capture all data 
-        start = from_utf8(&buffer[..]).unwrap();
-        if start == "star" {
-            loop {
+        
+        //println!("{}",buffer[1]);
+        
+        start = &buffer;//from_utf8(&buffer[..]).unwrap();
+        //println!("test");
+        if start == start_c {
+            'inner: loop {
+
+                
                 self.stream.as_mut().unwrap().read(&mut buffer[..]);
-                let mut end = from_utf8(&buffer[..]).unwrap();
-                if end == "done"{
-                    break
+
+                let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
+                if end == end_c{
+                    println!("Broke Here 1");
+                    self.rdata = temp;
+                    break 'inner
                 }
-                else if end == "star"{
-                    break
+                else if end == start_c{
+                    println!("Broke Here 2");
+                    break 'inner
                 }
                 else if temp.len() > 100{
                     println!("There was an error");
@@ -59,28 +74,24 @@ pub fn wifi_comms(&mut self) {
                     temp.push(LittleEndian::read_f32(&buffer[..]));
                 }
             }
-            if end == "done"{
-                self.rdata = temp;
-            }
         }
 
+        self.sdata = [0.01;5].to_vec();
         let l = self.sdata.len();
         let mut i = 0;
         self.buffer = [0;4];
-        start = "star";
-        self.stream.as_mut().unwrap().write(start.as_bytes());
+        self.stream.as_mut().unwrap().write(start_c);
         loop {
-
             self.buffer = [0;4]; 
-            LittleEndian::write_f32_into(&self.sdata[..i], &mut buffer[..]);
+
+            LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer[..]);
             self.stream.as_mut().unwrap().write(&buffer[..]);
                 i += 1;
                 if i == l {
                     break
                 }
         }
-        end = "done";
-        self.stream.as_mut().unwrap().write(end.as_bytes());
+        self.stream.as_mut().unwrap().write(end_c);
     }
 }
 }
