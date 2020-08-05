@@ -47,11 +47,6 @@ class Network():
             for x in range(len(Data)):
                 info += self.s.send(pack('f', Data[x]))  
             info += self.s.send(pack('s',"done"))   
-
-"""             if info == bytes_s+2:
-                self.connection = True
-            else:
-                self.connection = True """
                 
         except ConnectionError:
             self.connection = False
@@ -64,23 +59,21 @@ class Network():
             temp_data = []
             buffer = self.s.recv(BufferSize)
             first = unpack('s', buffer)
-            if buffer == "star"
+            if buffer == "star":
                 while True:
                     buffer = self.s.recv(BufferSize)
                     last = unpack('s', buffer)
-                    if last == "done"
+                    if last == "done":
                         break
-                    elif last =="star"
+                    elif last =="star":
                         break
                     else:
                         temp_data.append(unpack('f',buffer))
-            if first == "star" & last == "done"
+            if first == "star" & last == "done":
                 self.rdata = temp_data
 
         except ConnectionError:
             print("Error Recieving data")
-
-        if self.rdata[0] == 255.0 & self.rdata[-1] == 255.0
     
     # This function is just here right now for future debugging of binary data if needed
     def binary_rep(Data):
