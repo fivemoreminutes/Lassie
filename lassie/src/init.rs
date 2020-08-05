@@ -4,7 +4,7 @@ use crate::communication::Comms;
 pub fn startup<'a>() -> Comms<'a> {
       
     let mut com = Comms {
-        address: "192.168.1.3:1000",
+        address: "192.168.1.3:2000",
         stream: None,
         rdata: Vec::new(),
         sdata: Vec::new(),

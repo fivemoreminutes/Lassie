@@ -26,9 +26,9 @@ fn main() {
 
         let l = com.rdata.len(); //outputting the data 
         for x in 0..l {
-            println!("{}",com.rdata[x]);
+            print!(" {} ",com.rdata[x]);
         }
-        println!("\n");
+        //println!("\n");
   
     }
 
