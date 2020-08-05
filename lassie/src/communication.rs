@@ -30,13 +30,13 @@ pub fn listen<'a>(&mut self) {
 }
 
 pub fn wifi_comms(&mut self) {
-    let mut end = &[0;4];
-    let mut start = &[0;4];
+    let mut end: &[u8] = &[0;4];
+    let mut start: &[u8] = &[0;4];
 
-    let start_c = "star".as_bytes();
-    let end_c = "done".as_bytes();
+    let mut start_c = "star".as_bytes();
+    let mut end_c = "done".as_bytes();
 
-    let mut buffer = [0;4]; //creating a buffer to read data into t
+    let mut buffer = [0;512]; //creating a buffer to read data into t
     let mut temp = Vec::new();
     //the following checks if I am connected to the laptop and then writes data if possible
     if self.connection == false { 
@@ -47,22 +47,24 @@ pub fn wifi_comms(&mut self) {
         self.stream.as_mut().unwrap().read(&mut buffer[..]); //reading from the port to reference of buffer to a vector to capture all data 
         
         //println!("{}",buffer[1]);
-        
-        start = &buffer;//from_utf8(&buffer[..]).unwrap();
+        start = &buffer[0..=3];//from_utf8(&buffer[..]).unwrap();
         //println!("test");
-        if start == start_c {
+                        
+            let mut i = 0;
+            let mut j = 3;
+        if start == start_c{
             'inner: loop {
-
                 
-                self.stream.as_mut().unwrap().read(&mut buffer[..]);
-
-                let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
-                if end == end_c{
+                //self.stream.as_mut().unwrap().read(&mut buffer[..]);
+                
+                let mut pos = &buffer[i..=j];
+                //let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
+                if pos == end_c{
                     println!("Broke Here 1");
                     self.rdata = temp;
                     break 'inner
                 }
-                else if end == start_c{
+                else if pos == start_c{
                     println!("Broke Here 2");
                     break 'inner
                 }
@@ -71,27 +73,30 @@ pub fn wifi_comms(&mut self) {
                     panic!();
                 }
                 else{
-                    temp.push(LittleEndian::read_f32(&buffer[..]));
+                    temp.push(LittleEndian::read_f32(&pos[..]));
                 }
+                i += 4;
+                j += 4;
             }
         }
 
         self.sdata = [0.01;5].to_vec();
         let l = self.sdata.len();
         let mut i = 0;
-        self.buffer = [0;4];
-        self.stream.as_mut().unwrap().write(start_c);
+        let mut buffer = Vec::new(); 
+        buffer.append(&mut start_c.to_vec());
         loop {
-            self.buffer = [0;4]; 
-
-            LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer[..]);
-            self.stream.as_mut().unwrap().write(&buffer[..]);
-                i += 1;
-                if i == l {
-                    break
-                }
+            let mut buffer1 = [0;4];
+            LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer1[..]);
+            buffer.append(&mut buffer1.to_vec());
+            //self.stream.as_mut().unwrap().write(&buffer[..]);
+            i += 1;
+            if i == l {
+                break
+            }
         }
-        self.stream.as_mut().unwrap().write(end_c);
+        self.stream.as_mut().unwrap().write(&buffer[..]);
     }
 }
 }
+

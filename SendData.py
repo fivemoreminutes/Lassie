@@ -40,12 +40,14 @@ class Network():
     def data_exchange(self):
         info = 0
         bytes_s = len(self.sdata)*4
+        buffer = []
         try:   
 
-            info += self.s.send(b'star')
+            buffer.append(b'star')
             for x in range(len(self.sdata)):
-                info += self.s.send(pack('f', self.sdata[x]))  
-            info += self.s.send(b'done')   
+                buffer.append(pack('f', self.sdata[x]))  
+            buffer.append(b'done')   
+        self.s.send(buffer)
                 
         except ConnectionError:
             print("Connection Error")
@@ -53,13 +55,17 @@ class Network():
         except TimeoutError:
             print("There was a timeout")
             #self.connection = False
-
-        BufferSize = 4
+        
+        buffer = []
+        BufferSize = 512
         try:
-            buffer = self.s.recv(BufferSize)
-            first = buffer
             temp_data = []
-            if first == b'star':
+            buffer = self.s.recv(BufferSize)
+            first = buffer[0:4]
+            last = buffer[-4:]
+            if first == b'star' & last == b'done':
+                self.rdata = list(unpack('f',buffer))
+            '''    
                 while True:
                     buffer = self.s.recv(BufferSize)
                     last = buffer
@@ -71,7 +77,7 @@ class Network():
                     else:   
                         temp = list(unpack('f',buffer))                     
                         temp_data.append(temp[0])                     
-
+            '''
         except ConnectionError:
             print("Error Recieving data")
     
