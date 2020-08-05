@@ -9,15 +9,15 @@ class Network():
         self.connection = False
         self.rdata = []
         self.sdata = []
-        self.PORT = 1000
+        self.PORT = 2000
         self.addr = "192.168.1.3"
     
     def comm_init(self):
         itr = 1
         while True:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:  # if there is an error it should return the error type to main
-                s.connect((self.addr,self.PORT))
+                self.s.connect((self.addr,self.PORT))
                 self.connection = True
             except ConnectionError:
                 print("There was an error connecting to pi")
@@ -37,40 +37,40 @@ class Network():
             self.s.close()
             self.connection = False
     
-    def data_exhcange(self):
+    def data_exchange(self):
         info = 0
         bytes_s = len(self.sdata)*4
         try:   
-            print("Sending")
 
-            info += self.s.send(pack('s',"star"))
-            for x in range(len(Data)):
-                info += self.s.send(pack('f', Data[x]))  
-            info += self.s.send(pack('s',"done"))   
+            info += self.s.send(b'star')
+            for x in range(len(self.sdata)):
+                info += self.s.send(pack('f', self.sdata[x]))  
+            info += self.s.send(b'done')   
                 
         except ConnectionError:
-            self.connection = False
+            print("Connection Error")
+            #self.connection = False
         except TimeoutError:
-            self.connection = False
+            print("There was a timeout")
+            #self.connection = False
 
         BufferSize = 4
         try:
-            print("Recieving")
-            temp_data = []
             buffer = self.s.recv(BufferSize)
-            first = unpack('s', buffer)
-            if buffer == "star":
+            first = buffer
+            temp_data = []
+            if first == b'star':
                 while True:
                     buffer = self.s.recv(BufferSize)
-                    last = unpack('s', buffer)
-                    if last == "done":
+                    last = buffer
+                    if last == b'done':
+                        self.rdata = temp_data
                         break
-                    elif last =="star":
+                    elif last ==b'star':
                         break
-                    else:
-                        temp_data.append(unpack('f',buffer))
-            if first == "star" & last == "done":
-                self.rdata = temp_data
+                    else:   
+                        temp = list(unpack('f',buffer))                     
+                        temp_data.append(temp[0])                     
 
         except ConnectionError:
             print("Error Recieving data")

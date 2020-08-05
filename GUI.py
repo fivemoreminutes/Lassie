@@ -115,11 +115,12 @@ while True:
     root.update()
     if app.net.connection == True:
         try:
-            rec_data = app.net.data_exhcange()
-            print(rec_data)
+            app.net.data_exchange()
+            print(app.net.rdata)
         except:
+
             print("There was an error in sending data")
-            print(app.net.s)
+            #print(app.net.s)
 
         
     #app.Data = [0.01,0.01,0.01,0.01,0.01]
