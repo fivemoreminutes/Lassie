@@ -94,6 +94,9 @@ class Application(tk.Frame):
     
     def disconnect(self):
         self.net.disconnect()
+        if self.net.connection == False:
+            self.text1.set("Connection Status: Not Connected") 
+            self.connection_status.config(fg = "red")
 
 root = tk.Tk()
 root.geometry("1000x900")

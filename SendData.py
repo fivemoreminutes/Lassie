@@ -1,4 +1,5 @@
 import socket
+import numpy as np
 from struct import pack, unpack
 from bitstring import BitArray
 
@@ -40,14 +41,14 @@ class Network():
     def data_exchange(self):
         info = 0
         bytes_s = len(self.sdata)*4
-        buffer = []
+        
         try:   
 
-            buffer.append(b'star')
+            buffer = b'star'
             for x in range(len(self.sdata)):
-                buffer.append(pack('f', self.sdata[x]))  
-            buffer.append(b'done')   
-        self.s.send(buffer)
+                buffer = buffer+pack('f', self.sdata[x])
+            buffer = buffer + b'done'  
+            self.s.send(buffer)
                 
         except ConnectionError:
             print("Connection Error")
@@ -61,10 +62,29 @@ class Network():
         try:
             temp_data = []
             buffer = self.s.recv(BufferSize)
+            #print(buffer)
             first = buffer[0:4]
+            #print(first)
             last = buffer[-4:]
-            if first == b'star' & last == b'done':
-                self.rdata = list(unpack('f',buffer))
+            #print(last)
+            temp = []
+            i = 4
+            j = 8
+            if bytes(first) == b'star':
+                while True:
+                    buf = buffer[i:j]
+                    #print(buf)
+                    i += 4
+                    j += 4
+                    if buf == b'done':
+                        break
+                    elif last ==b'star':
+                        break
+                    else:
+                        temp = list(unpack('f',buf))
+                        temp_data.append(temp[0])
+                self.rdata = temp_data
+
             '''    
                 while True:
                     buffer = self.s.recv(BufferSize)
@@ -82,7 +102,7 @@ class Network():
             print("Error Recieving data")
     
     # This function is just here right now for future debugging of binary data if needed
-    def binary_rep(Data):
+    def binary_rep(self, Data):
         A = pack('f', Data)
         A = BitArray(A).bin
         return A
