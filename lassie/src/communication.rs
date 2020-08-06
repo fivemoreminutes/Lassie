@@ -33,8 +33,8 @@ pub fn wifi_comms(&mut self) {
     let mut end: &[u8] = &[0;4];
     let mut start: &[u8] = &[0;4];
 
-    let mut start_c = "star".as_bytes();
-    let mut end_c = "done".as_bytes();
+    let start_c = "star".as_bytes();
+    let end_c = "done".as_bytes();
 
     let mut buffer = [0;512]; //creating a buffer to read data into t
     let mut temp = Vec::new();
@@ -43,59 +43,74 @@ pub fn wifi_comms(&mut self) {
         println!("Not Connected!!!"); 
     }
     else{
+         //reading from the port to reference of buffer to a vector to capture all data 
+        match self.stream.as_mut().unwrap().read(&mut buffer[..]){
+            Ok(_x) => (),
+            Err(e) => println!("There was an error: {}", e)
+        }
 
-        self.stream.as_mut().unwrap().read(&mut buffer[..]); //reading from the port to reference of buffer to a vector to capture all data 
-        
         //println!("{}",buffer[1]);
-        start = &buffer[0..=3];//from_utf8(&buffer[..]).unwrap();
-        //println!("test");
-                        
-            let mut i = 0;
-            let mut j = 3;
-        if start == start_c{
-            'inner: loop {
-                
-                //self.stream.as_mut().unwrap().read(&mut buffer[..]);
-                
-                let mut pos = &buffer[i..=j];
-                //let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
-                if pos == end_c{
-                    println!("Broke Here 1");
-                    self.rdata = temp;
-                    break 'inner
+        if &buffer.len() > &0 {
+            start = &buffer[0..=3];//from_utf8(&buffer[..]).unwrap();
+            //println!("test");
+                            
+                let mut i = 0;
+                let mut j = 3;
+            if start == start_c{
+                'inner: loop {
+                    
+                    //self.stream.as_mut().unwrap().read(&mut buffer[..]);
+                    
+                    let pos = &buffer[i..=j];
+                    //let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
+                    if pos == end_c{
+                        println!("Broke Here 1");
+                        self.rdata = temp;
+                        break 'inner
+                    }
+                    else if pos == start_c{
+                        println!("Broke Here 2");
+                        break 'inner
+                    }
+                    else if temp.len() > 100{
+                        println!("There was an error");
+                        panic!();
+                    }
+                    else{
+                        temp.push(LittleEndian::read_f32(&pos[..]));
+                    }
+                    i += 4;
+                    j += 4;
                 }
-                else if pos == start_c{
-                    println!("Broke Here 2");
-                    break 'inner
-                }
-                else if temp.len() > 100{
-                    println!("There was an error");
-                    panic!();
-                }
-                else{
-                    temp.push(LittleEndian::read_f32(&pos[..]));
-                }
-                i += 4;
-                j += 4;
             }
-        }
+        
 
-        self.sdata = [0.01;5].to_vec();
-        let l = self.sdata.len();
-        let mut i = 0;
-        let mut buffer = Vec::new(); 
-        buffer.append(&mut start_c.to_vec());
-        loop {
+            self.sdata = [0.01;5].to_vec();
+            let l = self.sdata.len();
+            let mut i = 0;
+            let mut buffer = Vec::new(); 
+            buffer.append(&mut start_c.to_vec());
             let mut buffer1 = [0;4];
-            LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer1[..]);
-            buffer.append(&mut buffer1.to_vec());
-            //self.stream.as_mut().unwrap().write(&buffer[..]);
-            i += 1;
-            if i == l {
-                break
+            loop {
+                LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer1[..]);
+                buffer.append(&mut buffer1.to_vec());
+                //self.stream.as_mut().unwrap().write(&buffer[..]);
+                i += 1;
+                if i == l {
+                    break
+                }
             }
+            buffer.append(&mut end_c.to_vec());
+            
+            match self.stream.as_mut().unwrap().write(&buffer[..]){
+                Ok(_x) => (),
+                Err(e) => println!("There was an error: {}", e)
+            }
+
         }
-        self.stream.as_mut().unwrap().write(&buffer[..]);
+        else{
+            self.listen()
+        }
     }
 }
 }
