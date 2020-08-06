@@ -46,7 +46,8 @@ pub fn wifi_comms(&mut self) {
          //reading from the port to reference of buffer to a vector to capture all data 
         match self.stream.as_mut().unwrap().read(&mut buffer[..]){
             Ok(_x) => (),
-            Err(e) => println!("There was an error: {}", e)
+            Err(e) => {println!("There was an error: {}", e);
+                        self.listen()}
         }
 
         //println!("{}",buffer[1]);
@@ -54,8 +55,8 @@ pub fn wifi_comms(&mut self) {
             start = &buffer[0..=3];//from_utf8(&buffer[..]).unwrap();
             //println!("test");
                             
-                let mut i = 0;
-                let mut j = 3;
+                let mut i = 4;
+                let mut j = 7;
             if start == start_c{
                 'inner: loop {
                     
@@ -101,10 +102,11 @@ pub fn wifi_comms(&mut self) {
                 }
             }
             buffer.append(&mut end_c.to_vec());
-            
+            println!("{} {} {} {}", buffer[0], buffer[1],buffer[2],buffer[3]); 
             match self.stream.as_mut().unwrap().write(&buffer[..]){
                 Ok(_x) => (),
-                Err(e) => println!("There was an error: {}", e)
+                Err(e) => {println!("There was an error: {}", e);
+                            self.listen()}
             }
 
         }
