@@ -63,14 +63,8 @@ pub fn listen<'a>(&mut self) {
     }
 }
 
-pub fn wifi_comms(&mut self) {
-    let mut end: &[u8] = &[0;4];
-    let mut start: &[u8] = &[0;4];
-
+pub fn wifi_comms(&mut self) -> Result<(),Box<dyn Error>>{
     //These are my key words for defining the start and end of a data package for both wifi and spi comms
-    let start_c = "star".as_bytes(); 
-    let end_c = "done".as_bytes();
-    
     //creating a buffer to read data into
     let mut buffer = [0;512]; 
 
@@ -81,36 +75,41 @@ pub fn wifi_comms(&mut self) {
     }
     else{
          //reading from the tcp stream to the buffer, if there is an error print the error and listen for a new connection
-        match self.stream.as_mut().unwrap().read(&mut buffer[..]){
+         self.stream.as_mut().unwrap().read(&mut buffer[..])?;
+         /*
+         match self.stream.as_mut().unwrap().read(&mut buffer[..]){
             Ok(_x) => (),
             Err(e) => {println!("There was an error: {}", e);
                         self.listen()}
         }
-        
-       self.data_parsing(&mut temp, &buffer.to_vec());//{
-       //     Ok() => (),
-       //     Err(e) => self.listen(),
-       // };
+
+       match self.data_parsing(&mut temp, &buffer.to_vec()) {
+            Ok(()) => (),
+            Err(_e) => self.listen(),
+        };
+        */
+        self.data_parsing(&mut temp, &buffer.to_vec())?;
         self.rdata = temp;
 
             self.sdata = [0.01;5].to_vec();
             let mut buffer:std::vec::Vec<u8> = Vec::new();
      
-            self.data_packaging(&self.sdata, &mut buffer);
-
-            match self.stream.as_mut().unwrap().write(&buffer[..]){
+            self.data_packaging(&self.sdata, &mut buffer)?;
+            self.stream.as_mut().unwrap().write(&buffer[..])?;
+            /*
+            match self.stream.as_mut().unwrap().write(&buffer[..])?{
                 Ok(_x) => (),
                 Err(e) => {println!("There was an error: {}", e);
                             self.listen()}
             }
-
+*/
         }
-
+        Ok(())
     }
 
 
 
-fn data_parsing(&mut self, data: &mut Vec<f32>, buffer: &Vec<u8>) {//-> Result<(),e>{
+fn data_parsing(&mut self, data: &mut Vec<f32>, buffer: &Vec<u8>) -> Result<(),Box<dyn Error>>{
     let mut end: &[u8] = &[0;4];
     let mut start: &[u8] = &[0;4];
 
@@ -148,9 +147,7 @@ fn data_parsing(&mut self, data: &mut Vec<f32>, buffer: &Vec<u8>) {//-> Result<(
             }
         }
     }
-    else{
-        self.listen();
-    }
+    Ok(())
 }
 
 pub fn spi_init(&mut self){
@@ -217,7 +214,7 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
 }
 
 
-fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) {
+fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(),Box<dyn Error>> {
 
     let mut buffer1 = [0;4];
     let start_c = "star".as_bytes();
@@ -236,7 +233,10 @@ fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) {
         }
     }
     buffer.append(&mut end_c.to_vec());
+    
+Ok(())
 }
+
 
 }
 
