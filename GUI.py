@@ -83,7 +83,10 @@ class Application(tk.Frame):
 
     def test_button_press(self):
         print("test")
-        self.net.sdata[0] = 3.2
+        if self.net.sdata[0] > 3.0:
+            self.net.sdata[0] = 0.01
+        else:
+            self.net.sdata[0] = 3.2
 
     def connect(self):
         if self.net.connection == False:
