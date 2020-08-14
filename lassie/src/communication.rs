@@ -87,40 +87,11 @@ pub fn wifi_comms(&mut self) {
                         self.listen()}
         }
         
-        self.data_parsing(&mut temp, &buffer.to_vec());
+       self.data_parsing(&mut temp, &buffer.to_vec());//{
+       //     Ok() => (),
+       //     Err(e) => self.listen(),
+       // };
         self.rdata = temp;
-        /*
-        if &buffer.len() > &0 {
-            start = &buffer[0..=3];
-
-                            
-                let mut i = 4;
-                let mut j = 7;
-            if start == start_c{
-                'inner: loop {
-
-                    
-                    let pos = &buffer[i..=j];
-
-                    if pos == end_c{
-                        self.rdata = temp;
-                        break 'inner
-                    }
-                    else if pos == start_c{
-                        break 'inner
-                    }
-                    else if temp.len() > 100{
-                        println!("There was an error");
-                        panic!();
-                    }
-                    else{
-                        temp.push(LittleEndian::read_f32(&pos[..]));
-                    }
-                    i += 4;
-                    j += 4;
-                }
-            }
-        */
 
             self.sdata = [0.01;5].to_vec();
             let mut buffer:std::vec::Vec<u8> = Vec::new();
@@ -139,7 +110,7 @@ pub fn wifi_comms(&mut self) {
 
 
 
-fn data_parsing(&self, data: &mut Vec<f32>, buffer: &Vec<u8>){
+fn data_parsing(&mut self, data: &mut Vec<f32>, buffer: &Vec<u8>) {//-> Result<(),e>{
     let mut end: &[u8] = &[0;4];
     let mut start: &[u8] = &[0;4];
 
@@ -147,11 +118,11 @@ fn data_parsing(&self, data: &mut Vec<f32>, buffer: &Vec<u8>){
     let start_c = "star".as_bytes(); 
     let end_c = "done".as_bytes();   
     let mut temp: std::vec::Vec<f32> = Vec::new();
+    let mut i = 4;
+    let mut j = 7;
 
     if &buffer.len() > &0 {
         start = &buffer[0..=3];  
-            let mut i = 4;
-            let mut j = 7;
         if start == start_c{
             'inner: loop {
                 
@@ -176,6 +147,9 @@ fn data_parsing(&self, data: &mut Vec<f32>, buffer: &Vec<u8>){
                 j += 4;
             }
         }
+    }
+    else{
+        self.listen();
     }
 }
 
