@@ -15,5 +15,6 @@ pub fn startup<'a>() -> Comms<'a> {
     */
     let mut com = communication::build_comms("192.168.1.3:2000");
     com.listen();
+    com.spi_init();
     com
 }

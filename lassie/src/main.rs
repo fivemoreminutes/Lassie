@@ -15,7 +15,7 @@ fn main() {
     println!("\n{:?}\n\n", chrono::offset::Local::now());
 
     let mut com = init::startup(); //calling initial connection to the laptop
-
+    
     loop {
 
         let mut rdata: std::vec::Vec<f32> = Vec::new(); //init new vectors for data
@@ -23,7 +23,7 @@ fn main() {
         //stage data to be sent by placing it in the coms object
         com.sdata = sdata;
         com.wifi_comms(); //sending the data
-
+        com.spi_comms();
         let l = com.rdata.len(); //outputting the data 
         for x in 0..l {
             print!(" {} ",com.rdata[x]);

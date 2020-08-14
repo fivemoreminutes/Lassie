@@ -24,10 +24,7 @@ use rppal::spi::{Bus,Mode, SlaveSelect, Spi};
     connection: bool,
     buffer: [u8;4],
 
-    WRITE: u8,
-    READ: u8,
-    RDSR: u8,
-    WREN: u8
+    dev1: u8
 }
 
 //Comms is my communication variable that will also be used for spi when I start work on that
@@ -146,23 +143,37 @@ pub fn spi_init(&mut self){
                     self.spi_connection = true;    },
         Err(e) => println!("Could not connect to Spi Bus because: {:?}", e)
     } 
+    Gpio::new().unwrap().get(self.dev1).unwrap().into_output().set_high();
 }
 
 //cs is chip select, but I am manually setting the pin to high/low to circumvent the SS pin shortage
-pub fn spi_comms(&mut self, cs: u8) -> Result<(),Box< dyn Error >> {
-    let WIP: u8 = 1; //done writing when WIP = 0
+pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
+    //let WIP: u8 = 1; //done writing when WIP = 0
     let mut buffer: std::vec::Vec<u8> = Vec::new();
-
+    //test code start
+    self.tx = [1.01;5].to_vec();
+    //test code end
     if self.spi_connection{
         self.data_packaging(&self.tx,&mut buffer);
 
-        self.spi.as_mut().unwrap().write(&[self.WREN])?;
+        let mut pin = Gpio::new().unwrap().get(self.dev1).unwrap().into_output();
+        //let mut pin1 = pin.into_output();
+        let mut i = 0;
+        let mut j = 3;
+        let l = buffer.len();
+        loop{
 
-        let mut pin = Gpio::new()?.get(cs)?.into_output();
         pin.set_low();
-        self.spi.as_mut().unwrap().write(&mut buffer[..]);
+        self.spi.as_mut().unwrap().write(&mut buffer[i..=j]);
         pin.set_high();
         
+        if j >= l-1{
+            break
+        }
+
+        i+=4;
+        j+=4;
+    }
         let mut buffer = [0u8; 20];
 
         pin.set_low();
@@ -237,10 +248,7 @@ pub fn build_comms<'a>(addr: &'a str) -> Comms<'a>{
         connection: false,
         buffer: [0;4],
 
-        WRITE: 0b0010, //write command
-        READ: 0b0011, //read command
-        RDSR: 0b0101, //read the status register
-        WREN: 0b0110, //enable writes
+        dev1: 23 as u8,
 
     };
 
