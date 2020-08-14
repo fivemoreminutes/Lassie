@@ -1,39 +1,58 @@
-use byteorder::{ByteOrder, LittleEndian};
-use std::io::prelude::*;
-use std::str::from_utf8;
-use std::error::Error;
-use std::net::TcpStream;
-use std::net::TcpListener;
-use rppal::gpio::Gpio;
-use rppal::spi::{Bus,Mode, SlaveSelect, Spi};
-use std::{thread, time};
+use byteorder::{ByteOrder, LittleEndian}; //used for f32 conversion
+use std::io::prelude::*; //honestly cant remember what this is used for but its important
+use std::error::Error; //defines the Error class used for the spi communication
+use std::net::TcpStream; //used for tcp communication 
+use std::net::TcpListener; //used to bind a listener to a port 
+use rppal::gpio::Gpio; //used to manually select spi devices in spi communication
+use rppal::spi::{Bus,Mode, SlaveSelect, Spi}; //used to do spi communication
+use std::{thread, time}; //used to give a minor pause after sending data over spi to allow it time to process the data
+
+/*******************************************
+ * Comms: 
+ * The communication class for the lassie software. The contents and methods for sending and recieving all data
+ * are contained inside this class. These include the following methods:
+ * 
+ * listen: waits and listens for a new tcp stream by listening on a set address and socket on the local network
+ * wifi_comms:sends and recieves data and returns it to the self.sdata and self.rdata respectively
+ * spi_init:initiates the spi communication and the pins for communication
+ * spi_comms: actually sending data over spi, will eventuntually take in an int for device select
+ * data_packaging: takes a f32 vector and converts it to a byte array with a starting and ending phrase to parse data
+ * 
+ * Special mention:
+ * build_comms: the constructor for the comms class as a ~~function~~ that can be called to create a comms object without 
+ * having to make all the data fields in the object public
+ * 
+ * ***************************************/
 
  pub struct Comms<'a> {
-    //These two are for wifi coms
+    //These two are data for wifi coms
     pub rdata: Vec<f32>, 
     pub sdata: Vec<f32>,
-    //These two are for spi coms
+    //These two are data for spi coms
     pub tx: Vec<f32>,
     pub rx: Vec<f32>,
-   
+    // this is the spi connection made by spi_init, and an indicator as to connection status
     spi: Option<Spi>,
     spi_connection: bool,
-
+    //these variables are used by the wifi comms section
     address: &'a str,
     stream: Option<TcpStream>,
     connection: bool,
-    buffer: [u8;4],
 
+    //these are the device pins on the pi for spi communication
     dev1: u8
 }
 
-//Comms is my communication variable that will also be used for spi when I start work on that
 impl Comms<'_> {
 
 pub fn listen<'a>(&mut self) {
+    //prints its address 
     println!("{}",self.address);
+    //binds address to a listener port
     let listener = TcpListener::bind(&self.address).unwrap();
     println!("\nWaiting for new connection");
+    //if listener finds new connection writes stream to stream object and sets connection status 
+
     match listener.accept() {
         Ok((socket,addr)) => {
             self.stream = Some(socket);
@@ -48,44 +67,46 @@ pub fn wifi_comms(&mut self) {
     let mut end: &[u8] = &[0;4];
     let mut start: &[u8] = &[0;4];
 
-    let start_c = "star".as_bytes();
+    //These are my key words for defining the start and end of a data package for both wifi and spi comms
+    let start_c = "star".as_bytes(); 
     let end_c = "done".as_bytes();
+    
+    //creating a buffer to read data into
+    let mut buffer = [0;512]; 
 
-    let mut buffer = [0;512]; //creating a buffer to read data into t
     let mut temp = Vec::new();
     //the following checks if I am connected to the laptop and then writes data if possible
     if self.connection == false { 
         println!("Not Connected!!!"); 
     }
     else{
-         //reading from the port to reference of buffer to a vector to capture all data 
+         //reading from the tcp stream to the buffer, if there is an error print the error and listen for a new connection
         match self.stream.as_mut().unwrap().read(&mut buffer[..]){
             Ok(_x) => (),
             Err(e) => {println!("There was an error: {}", e);
                         self.listen()}
         }
-
-        //println!("{}",buffer[1]);
+        
+        self.data_parsing(&mut temp, &buffer.to_vec());
+        self.rdata = temp;
+        /*
         if &buffer.len() > &0 {
-            start = &buffer[0..=3];//from_utf8(&buffer[..]).unwrap();
-            //println!("test");
+            start = &buffer[0..=3];
+
                             
                 let mut i = 4;
                 let mut j = 7;
             if start == start_c{
                 'inner: loop {
-                    
-                    //self.stream.as_mut().unwrap().read(&mut buffer[..]);
+
                     
                     let pos = &buffer[i..=j];
-                    //let mut end = &buffer;// from_utf8(&buffer[..]).unwrap();
+
                     if pos == end_c{
-                        println!("Broke Here 1");
                         self.rdata = temp;
                         break 'inner
                     }
                     else if pos == start_c{
-                        println!("Broke Here 2");
                         break 'inner
                     }
                     else if temp.len() > 100{
@@ -99,28 +120,11 @@ pub fn wifi_comms(&mut self) {
                     j += 4;
                 }
             }
-        
+        */
 
             self.sdata = [0.01;5].to_vec();
             let mut buffer:std::vec::Vec<u8> = Vec::new();
-            /* Made new function take place of this whole segment
-            let l = self.sdata.len();
-            let mut i = 0;
-            let mut buffer = Vec::new(); 
-            buffer.append(&mut start_c.to_vec());
-            let mut buffer1 = [0;4];
-            loop {
-                LittleEndian::write_f32_into(&self.sdata[i..=i], &mut buffer1[..]);
-                buffer.append(&mut buffer1.to_vec());
-                //self.stream.as_mut().unwrap().write(&buffer[..]);
-                i += 1;
-                if i == l {
-                    break
-                }
-            }
-            buffer.append(&mut end_c.to_vec());
-            println!("{} {} {} {}", buffer[0], buffer[1],buffer[2],buffer[3]); 
-*/      
+     
             self.data_packaging(&self.sdata, &mut buffer);
 
             match self.stream.as_mut().unwrap().write(&buffer[..]){
@@ -130,8 +134,47 @@ pub fn wifi_comms(&mut self) {
             }
 
         }
-        else{
-            self.listen()
+
+    }
+
+
+
+fn data_parsing(&self, data: &mut Vec<f32>, buffer: &Vec<u8>){
+    let mut end: &[u8] = &[0;4];
+    let mut start: &[u8] = &[0;4];
+
+    //These are my key words for defining the start and end of a data package for both wifi and spi comms
+    let start_c = "star".as_bytes(); 
+    let end_c = "done".as_bytes();   
+    let mut temp: std::vec::Vec<f32> = Vec::new();
+
+    if &buffer.len() > &0 {
+        start = &buffer[0..=3];  
+            let mut i = 4;
+            let mut j = 7;
+        if start == start_c{
+            'inner: loop {
+                
+                let pos = &buffer[i..=j];
+
+                if pos == end_c{
+                    data.append(&mut temp) ;
+                    break 'inner
+                }
+
+                else if pos == start_c{
+                    break 'inner
+                }
+                else if temp.len() > 100{
+                    println!("There was an error");
+                    panic!();
+                }
+                else{
+                    temp.push(LittleEndian::read_f32(&pos[..]));
+                }
+                i += 4;
+                j += 4;
+            }
         }
     }
 }
@@ -152,40 +195,24 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
     let mut buffer: std::vec::Vec<u8> = Vec::new();
     let ten_millis = time::Duration::from_millis(20);
 
-    //test code start
-    //self.tx = self.rdata;
-    //test code end
     if self.spi_connection{
         self.data_packaging(&self.rdata,&mut buffer);
 
         let mut pin = Gpio::new().unwrap().get(self.dev1).unwrap().into_output();
         //let mut pin1 = pin.into_output();
-        let mut i = 0;
-        let mut j = 3;
-        let l = buffer.len();
+
         pin.set_low();
         
-        
-        //loop{
+        self.spi.as_mut().unwrap().write(&mut buffer[..])?;
 
-        //pin.set_low();
-        self.spi.as_mut().unwrap().write(&mut buffer[..]);
-        //pin.set_high();
-        //thread::sleep(ten_millis);
-        //if i >= l-1{
-          //  break
-        //}
-        //println!("{}",buffer[i]);
-        //i+=1;
-        //j+=4;
-    //}
-    pin.set_high();
-    thread::sleep(ten_millis);
-    /*
+        pin.set_high();
+        thread::sleep(ten_millis);
+
+        //I will need to adjust this whole section I think using spi::segments 
         let mut buffer = [0u8; 20];
 
         pin.set_low();
-        self.spi.as_mut().unwrap().read(&mut buffer[..]);
+        self.spi.as_mut().unwrap().read(&mut buffer[..])?;
         pin.set_high();
 
         let l = buffer.len();
@@ -207,7 +234,7 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
                 j += 4;
             }
         }
-*/
+
     }
     else{
         println!("Not Connected to Spi bus!!")
@@ -228,7 +255,7 @@ fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) {
     loop {
         LittleEndian::write_f32_into(&data[i..=i], &mut buffer1[..]);
         buffer.append(&mut buffer1.to_vec());
-        //self.stream.as_mut().unwrap().write(&buffer[..]);
+
         i += 1;
         if i == l {
             break
@@ -239,6 +266,9 @@ fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) {
 
 }
 
+/*
+* build_comms: the constructor for the comms class
+*/
 pub fn build_comms<'a>(addr: &'a str) -> Comms<'a>{
     
     let mut com = Comms {
@@ -254,7 +284,6 @@ pub fn build_comms<'a>(addr: &'a str) -> Comms<'a>{
         address: addr,
         stream: None,
         connection: false,
-        buffer: [0;4],
 
         dev1: 22 as u8,
 
