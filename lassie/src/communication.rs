@@ -137,7 +137,7 @@ pub fn wifi_comms(&mut self) {
 }
 
 pub fn spi_init(&mut self){
-    match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 500_000, Mode::Mode0){
+    match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 1_000_000, Mode::Mode0){
         Ok(spi) => {
                     self.spi = Some(spi);
                     self.spi_connection = true;    },
@@ -150,7 +150,7 @@ pub fn spi_init(&mut self){
 pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
     //let WIP: u8 = 1; //done writing when WIP = 0
     let mut buffer: std::vec::Vec<u8> = Vec::new();
-    let ten_millis = time::Duration::from_millis(5);
+    let ten_millis = time::Duration::from_millis(20);
 
     //test code start
     //self.tx = self.rdata;
@@ -163,19 +163,24 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
         let mut i = 0;
         let mut j = 3;
         let l = buffer.len();
-        loop{
-
         pin.set_low();
-        self.spi.as_mut().unwrap().write(&mut buffer[i..=i]);
-        pin.set_high();
-        thread::sleep(ten_millis);
-        if i >= l-1{
-            break
-        }
+        
+        
+        //loop{
+
+        //pin.set_low();
+        self.spi.as_mut().unwrap().write(&mut buffer[..]);
+        //pin.set_high();
+        //thread::sleep(ten_millis);
+        //if i >= l-1{
+          //  break
+        //}
         //println!("{}",buffer[i]);
-        i+=1;
+        //i+=1;
         //j+=4;
-    }
+    //}
+    pin.set_high();
+    thread::sleep(ten_millis);
     /*
         let mut buffer = [0u8; 20];
 
