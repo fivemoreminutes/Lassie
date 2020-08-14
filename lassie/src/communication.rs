@@ -75,33 +75,18 @@ pub fn wifi_comms(&mut self) -> Result<(),Box<dyn Error>>{
     }
     else{
          //reading from the tcp stream to the buffer, if there is an error print the error and listen for a new connection
-         self.stream.as_mut().unwrap().read(&mut buffer[..])?;
-         /*
-         match self.stream.as_mut().unwrap().read(&mut buffer[..]){
-            Ok(_x) => (),
-            Err(e) => {println!("There was an error: {}", e);
-                        self.listen()}
-        }
-
-       match self.data_parsing(&mut temp, &buffer.to_vec()) {
-            Ok(()) => (),
-            Err(_e) => self.listen(),
-        };
-        */
+        println!("Flag 1");
+        self.stream.as_mut().unwrap().read(&mut buffer[..])?;
+        println!("Flag 2");
         self.data_parsing(&mut temp, &buffer.to_vec())?;
         self.rdata = temp;
-
-            self.sdata = [0.01;5].to_vec();
-            let mut buffer:std::vec::Vec<u8> = Vec::new();
-     
-            self.data_packaging(&self.sdata, &mut buffer)?;
-            self.stream.as_mut().unwrap().write(&buffer[..])?;
-            /*
-            match self.stream.as_mut().unwrap().write(&buffer[..])?{
-                Ok(_x) => (),
-                Err(e) => {println!("There was an error: {}", e);
-                            self.listen()}
-            }
+        println!("Flag 3");
+        self.sdata = [0.01;5].to_vec();
+        let mut buffer:std::vec::Vec<u8> = Vec::new();
+        println!("Flag 4");
+        self.data_packaging(&self.sdata, &mut buffer)?;
+        println!("Flag 5");
+        self.stream.as_mut().unwrap().write(&buffer[..])?;
 */
         }
         Ok(())
