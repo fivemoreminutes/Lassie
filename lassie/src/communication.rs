@@ -6,15 +6,15 @@ use std::net::TcpStream;
 use std::net::TcpListener;
 use rppal::gpio::Gpio;
 use rppal::spi::{Bus,Mode, SlaveSelect, Spi};
-
+use std::{thread, time};
 
  pub struct Comms<'a> {
     //These two are for wifi coms
     pub rdata: Vec<f32>, 
     pub sdata: Vec<f32>,
     //These two are for spi coms
-    tx: Vec<f32>,
-    rx: Vec<f32>,
+    pub tx: Vec<f32>,
+    pub rx: Vec<f32>,
    
     spi: Option<Spi>,
     spi_connection: bool,
@@ -137,7 +137,7 @@ pub fn wifi_comms(&mut self) {
 }
 
 pub fn spi_init(&mut self){
-    match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 2_000_000, Mode::Mode0){
+    match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 500_000, Mode::Mode0){
         Ok(spi) => {
                     self.spi = Some(spi);
                     self.spi_connection = true;    },
@@ -150,11 +150,13 @@ pub fn spi_init(&mut self){
 pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
     //let WIP: u8 = 1; //done writing when WIP = 0
     let mut buffer: std::vec::Vec<u8> = Vec::new();
+    let ten_millis = time::Duration::from_millis(5);
+
     //test code start
-    self.tx = [1.01;5].to_vec();
+    //self.tx = self.rdata;
     //test code end
     if self.spi_connection{
-        self.data_packaging(&self.tx,&mut buffer);
+        self.data_packaging(&self.rdata,&mut buffer);
 
         let mut pin = Gpio::new().unwrap().get(self.dev1).unwrap().into_output();
         //let mut pin1 = pin.into_output();
@@ -164,16 +166,17 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
         loop{
 
         pin.set_low();
-        self.spi.as_mut().unwrap().write(&mut buffer[i..=j]);
+        self.spi.as_mut().unwrap().write(&mut buffer[i..=i]);
         pin.set_high();
-        
-        if j >= l-1{
+        thread::sleep(ten_millis);
+        if i >= l-1{
             break
         }
-
-        i+=4;
-        j+=4;
+        //println!("{}",buffer[i]);
+        i+=1;
+        //j+=4;
     }
+    /*
         let mut buffer = [0u8; 20];
 
         pin.set_low();
@@ -199,7 +202,7 @@ pub fn spi_comms(&mut self) -> Result<(),Box< dyn Error >> {
                 j += 4;
             }
         }
-
+*/
     }
     else{
         println!("Not Connected to Spi bus!!")
@@ -248,7 +251,7 @@ pub fn build_comms<'a>(addr: &'a str) -> Comms<'a>{
         connection: false,
         buffer: [0;4],
 
-        dev1: 23 as u8,
+        dev1: 22 as u8,
 
     };
 

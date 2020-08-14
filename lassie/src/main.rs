@@ -23,6 +23,7 @@ fn main() {
         //stage data to be sent by placing it in the coms object
         com.sdata = sdata;
         com.wifi_comms(); //sending the data
+        //com.tx = com.rdata;
         com.spi_comms();
         let l = com.rdata.len(); //outputting the data 
         for x in 0..l {
