@@ -17,29 +17,34 @@ fn main() {
     let mut com = init::startup(); //calling initial connection to the laptop
 
     loop {
-
         let mut rdata: std::vec::Vec<f32> = Vec::new(); //init new vectors for data
         let mut sdata = Vec::new();
         //stage data to be sent by placing it in the coms object
         com.sdata = sdata;
-        match com.wifi_comms(){
+
+        match com.wifi_comms() {
             Ok(()) => (),
             Err(e) => {
-                println!("\nThere was an error: {:?}",e );
+                println!("\nThere was an error: {:?}", e);
                 com.listen();
             }
         } //sending the data
-        //com.tx = com.rdata;
-        com.spi_comms();
-        let l = com.rdata.len(); //outputting the data 
-        if l > 0{
+
+        match com.spi_comms() {
+            Ok(()) => (),
+            Err(e) => {
+                println!("\nThere was an error: {:?}", e);
+                match com.spi_init() {
+                    Ok(()) => (),
+                    Err(e) => println!("There was an Error: {:?}", e),
+                };
+            }
+        } //talking to arduinos
+
+        let l = com.rdata.len(); //outputting the data
         for x in 0..l {
-            print!(" {} ",com.rdata[x]);
+            print!(" {} ", com.rdata[x]);
         }
         print!("\n")
     }
-        //println!("\n");
-  
-    }
-
 }
