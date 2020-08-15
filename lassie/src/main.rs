@@ -32,10 +32,12 @@ fn main() {
         //com.tx = com.rdata;
         com.spi_comms();
         let l = com.rdata.len(); //outputting the data 
+        if l > 0{
         for x in 0..l {
             print!(" {} ",com.rdata[x]);
         }
         print!("\n")
+    }
         //println!("\n");
   
     }

@@ -72,26 +72,30 @@ pub fn wifi_comms(&mut self) -> Result<(),Box<dyn Error>>{
     //the following checks if I am connected to the laptop and then writes data if possible
     if self.connection == false { 
         println!("Not Connected!!!"); 
+        Err("Not Connected")?
     }
     else{
          //reading from the tcp stream to the buffer, if there is an error print the error and listen for a new connection
-        println!("Flag 1");
-        self.stream.as_mut().unwrap().read(&mut buffer[..])?;
-        println!("Flag 2");
+
+        match self.stream.as_mut(){
+            None => (),
+            Some(t) =>{t.read(&mut buffer[..])?;}
+        }
         self.data_parsing(&mut temp, &buffer.to_vec())?;
         self.rdata = temp;
-        println!("Flag 3");
+
         self.sdata = [0.01;5].to_vec();
         let mut buffer:std::vec::Vec<u8> = Vec::new();
-        println!("Flag 4");
+
         self.data_packaging(&self.sdata, &mut buffer)?;
-        println!("Flag 5");
-        self.stream.as_mut().unwrap().write(&buffer[..])?;
-*/
-        }
+
+        match self.stream.as_mut(){
+            None => (),
+            Some(t) => { t.write(&buffer[..])?;},
+        };
         Ok(())
     }
-
+}
 
 
 fn data_parsing(&mut self, data: &mut Vec<f32>, buffer: &Vec<u8>) -> Result<(),Box<dyn Error>>{
@@ -208,6 +212,10 @@ fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(),Box
     let l = data.len();
 
     buffer.append(&mut start_c.to_vec());
+    if l == 0{
+        Err("There was an Error")?
+    }
+    else{
     loop {
         LittleEndian::write_f32_into(&data[i..=i], &mut buffer1[..]);
         buffer.append(&mut buffer1.to_vec());
@@ -219,7 +227,8 @@ fn data_packaging(&self, data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(),Box
     }
     buffer.append(&mut end_c.to_vec());
     
-Ok(())
+    Ok(())
+    }
 }
 
 
