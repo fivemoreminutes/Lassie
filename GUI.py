@@ -1,7 +1,7 @@
 import tkinter as tk
 import SendData as SD
 
-ConectionError = "Not Connected to Pi, cannot send data"
+CONNECTION_ERROR = "Not Connected to Pi, cannot send data"
         
 class Application(tk.Frame):
     def __init__(self, master=None): #initializes the window
@@ -17,10 +17,6 @@ class Application(tk.Frame):
         for x in range(1,4):
             tk.Grid.columnconfigure(self,x,weight = 1)
             tk.Grid.rowconfigure(self,x,weight = 1) 
-
-        self.create_widgets()
-
-    def create_widgets(self):
         
         self.right_arrow = tk.Button(self, text = "\u2192", 
                                      command=self.right_arrow_press, height= 5, width = 10 )
@@ -58,31 +54,31 @@ class Application(tk.Frame):
             print("Up Arrow Pressed")
             self.net.sdata[1] = 3.2
         else:
-            print(ConectionError)
+            print(CONNECTION_ERROR)
 
     def down_arrow_press(self):
         if self.net.connection == True:
             print("Down Arrow Pressed")
             self.net.sdata[2] = 3.2
         else:
-            print(ConectionError)
+            print(CONNECTION_ERROR)
 
     def right_arrow_press(self):
         if self.net.connection == True:
             print("right Arrow Pressed")
             self.net.sdata[3] = 3.2
         else:
-            print(ConectionError)
+            print(CONNECTION_ERROR)
 
     def left_arrow_press(self):
         if self.net.connection == True:
             print("left Arrow Pressed")
             self.net.sdata[4] = 3.2
         else:
-            print(ConectionError)
+            print(CONNECTION_ERROR)
 
-    def test_button_press(self):
-        print("test")
+#TO-DO:add a network error handling for the next three functions
+    def test_button_press(self): 
         if self.net.sdata[0] > 3.0:
             self.net.sdata[0] = 0.01
         else:
@@ -106,16 +102,11 @@ root.geometry("1000x900")
 
 app = Application(master=root)
 
-conn = SD.Network()
-
-
 app.net.rdata = [0.02, 0.03, 0.04, 0.05, 0.06]
 app.net.sdata = [0.02, 0.03, 0.04, 0.05, 0.06]
 
-#app.net.comm_init()
-#app.text1.set("Connection Status: Connected") 
-#app.connection_status.config(fg = "green")
-
+#TO-DO: look into making this effecient
+#potentially add a wait time to the loop 
 while True:
     root.update_idletasks()
     root.update()
@@ -124,10 +115,8 @@ while True:
             app.net.data_exchange()
             print(app.net.rdata)
         except:
-
             print("There was an error in sending data")
-            #print(app.net.s)
 
-        
-    #app.Data = [0.01,0.01,0.01,0.01,0.01]
+    
+
         

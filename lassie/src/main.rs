@@ -1,6 +1,6 @@
 mod communication;
 mod init;
-mod motor_calc;
+mod movement;
 extern crate chrono;
 
 fn main() {
@@ -30,6 +30,8 @@ fn main() {
             }
         } //sending the data
 
+        
+        /*
         match com.spi_comms() {
             Ok(()) => (),
             Err(e) => {
@@ -40,7 +42,7 @@ fn main() {
                 };
             }
         } //talking to arduinos
-
+*/
         let l = com.rdata.len(); //outputting the data
         for x in 0..l {
             print!(" {} ", com.rdata[x]);
