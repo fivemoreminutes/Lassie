@@ -81,7 +81,7 @@ impl Wifi_Comms<'_> {
             let mut buffer: std::vec::Vec<u8> = Vec::new(); //re-initializing the buffer
 
             //self.data_packaging(&self.sdata, &mut buffer)?; //packaging the data to be sent
-            communication::data_packaging(&self.sdata,&mut buffer);
+            communication::data_packaging_f32(&self.sdata,&mut buffer);
              //if there is a active stream write the data to the tcp device
             match self.stream.as_mut() {
                 None => (),

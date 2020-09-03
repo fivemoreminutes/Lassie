@@ -4,7 +4,7 @@ pub mod wifi_comms;
 use std::error::Error;
 use byteorder::{ByteOrder, LittleEndian};
 
-pub fn data_packaging(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), Box<dyn Error>> {
+pub fn data_packaging_f32(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), Box<dyn Error>> {
     //this is the sister function to the data parsing code, where data is taken from a float and transitioned to bytes
     let mut buffer1 = [0; 4];
     let start_c = "star".as_bytes();
@@ -33,6 +33,34 @@ pub fn data_packaging(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), Box<d
     }
 }
 
+pub fn data_packaging_i32(data: &Vec<i32>, buffer: &mut Vec<u8>) -> Result<(), Box<dyn Error>> {
+    //this is the sister function to the data parsing code, where data is taken from a float and transitioned to bytes
+    let mut buffer1 = [0; 4];
+    let start_c = "star".as_bytes();
+    let end_c = "done".as_bytes();
+    let mut i = 0;
+    let l = data.len();
+
+    buffer.append(&mut start_c.to_vec());
+    if l == 0 {
+        Err("There was an Error")? //this is a jank way of returning a dyn error
+    } 
+    else {
+        //essentially pushing data to a buffer after converting it to byte data
+        loop {
+            LittleEndian::write_i32_into(&data[i..=i], &mut buffer1[..]);
+            buffer.append(&mut buffer1.to_vec());
+
+            i += 1;
+            if i == l {
+                break;
+            }
+        }
+        buffer.append(&mut end_c.to_vec());
+
+        Ok(()) // returning ok if successful
+    }
+}
 
 pub fn data_parsing(data: &mut Vec<f32>, buffer: &Vec<u8>,) -> Result<(), Box<dyn Error>> {
     let start: &[u8];

@@ -26,8 +26,8 @@ use crate::communication;
 
 pub struct Spi_Comms {
     //These two are data for wifi coms
-    pub tx: Vec<f32>, //TO-DO: I realized this should likely be integer on both sides
-    pub rx: Vec<f32>,
+    pub tx: Vec<i32>, //TO-DO: I realized this should likely be integer on both sides
+    pub rx: Vec<i32>,
     // this is the spi connection made by spi_init, and an indicator as to connection status
     spi: Option<Spi>,
     spi_connection: bool,
@@ -49,7 +49,7 @@ impl Spi_Comms {
             /// TEST CODE FOR TESTING PURPOSES NEEDS TO CHANGE IN THE FUTURE ///////////////
             ////////////////////////////////////////////////////////////////////////////////
             //self.data_packaging(&self.rx, &mut buffer)?;
-            communication::data_packaging(&self.rx,&mut buffer);
+            communication::data_packaging_i32(&self.rx,&mut buffer);
             let mut pin = Gpio::new()?.get(self.dev)?.into_output();
 
             //set CS pin to low to start transfer
@@ -87,7 +87,7 @@ impl Spi_Comms {
                         println!("There was an error reading from spi, rx is messed up now");
                         break;
                     }
-                    self.rx.push(LittleEndian::read_f32(&pos[..]));
+                    self.rx.push(LittleEndian::read_i32(&pos[..]));
                     i += 4;
                     j += 4;
                     pos = &buffer[i..j];

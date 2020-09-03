@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 use std::thread::sleep;
 use crate::communication::spi_comms::Spi_Comms;
 use crate::communication::spi_comms;
+use crate::movement;
 
 pub struct Legs {
     P_CONST: Vec<f32>,
@@ -64,10 +65,16 @@ impl Legs {
     }
 
     fn update_pos(&mut self){
+
         match self.coms.as_mut() {
-            Some(T) => {self.pos = T.rx[..].to_vec();},
+            Some(T) => {match movement::to_degrees(T.rx[..].to_vec()){
+                            Ok(t) => self.pos = t,
+                            Err(e) => println!("There was an error: {:?}", e),
+                           };
+                        },
             None => (),
     };
+
     }
 
     fn f32_PWM_output(&self, mut num: f32) -> i32{
@@ -84,9 +91,9 @@ impl Legs {
         match self.coms.as_mut(){
             Some(T) => {
                 match T.spi_init(){
-                    Ok(()) => { T.tx = vec![0.0;3];
+                    Ok(()) => { T.tx = vec![0;3];
                                 T.spi_comms();
-                                self.pos = T.rx[..].to_vec();
+                                self.update_pos();
                                 },
                     Err(e) => println!("There was an Error: {:?}",e)
                         };
