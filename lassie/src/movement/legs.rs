@@ -9,8 +9,8 @@ pub struct Legs {
     I_CONST: Vec<f32>,
     D_CONST: Vec<f32>,
 
-    t: Instant,
-    dt: Duration,
+    t: Vec<f32>,
+    prev_instant: Instant,
 
     L1: f32,
     L2: f32,
@@ -19,8 +19,10 @@ pub struct Legs {
     pub input: Vec<f32>,
     output: Vec<i32>,//PWM outputs to the arduino
     pos: Vec<f32>, //angle in degrees
-    pos_integral: Vec<f32>,
-    held_diff: Vec<f32>,
+
+    diff_1: Vec<f32>,
+    diff_2: Vec<f32>,
+    diff_3: Vec<f32>,
 
     dev_pin: u8,
     coms: Option<Spi_Comms>,
@@ -28,39 +30,38 @@ pub struct Legs {
 
 impl Legs {
 
-    fn movement(&mut self){
-        let current_time = Instant::now();
-        self.dt = current_time.duration_since(self.t);
-        self.t = current_time;
+    pub fn movement(&mut self){
+
+        self.update_time();
         self.update_pos();
-
-
-        /*
-        let diff = self.input[index]-self.pos[index];
-        let diff_i = self.pos_integral[index] + diff*t;
-        let diff_d = (diff-self.held_diff[index])/t;
-        */
-
         self.PID_loop();
 
     }
 
     fn PID_loop(&mut self){
         //will use the self.P_CONST etc. to control the PID control, each "loop" will be a whole leg
-
-        let t = 0.01; //idk how to do this yet I will need to talk to ryan
+        let l = self.t.len();
+        let mut diff = Vec::new();
         for index in 0..3{
-            let diff = self.input[index]-self.pos[index];
-            let diff_i = self.pos_integral[index] + diff*t;
-            let diff_d = (diff-self.held_diff[index])/t;
+            match index{
+                0 => diff = self.diff_1.to_vec(),
+                1 => diff = self.diff_2.to_vec(),
+                2 => diff = self.diff_3.to_vec(),
+                _ => ()
+            };
 
-            let P = (self.P_CONST[index])*diff;
+            let mut diff_i = 0.0;
+            for x in 0..l as usize {
+                diff_i = diff_i + diff[x]*self.t[x];
+            }
+           
+            let diff_d = (diff[l-1]-diff[l-2])/self.t[l-1];
+
+            let P = (self.P_CONST[index])*diff[l-1];
             let I = (self.I_CONST[index])*diff_i;
             let D = (self.D_CONST[index] )*diff_d;
 
             self.output[index] = (P+I+D).round() as i32;
-            self.pos_integral[index] = diff_i;
-            self.held_diff[index] = diff;
         }
     }
 
@@ -74,8 +75,29 @@ impl Legs {
                         },
             None => (),
     };
+        
+        self.diff_1.push(self.input[0]-self.pos[0]);
+        self.diff_2.push(self.input[1]-self.pos[1]);
+        self.diff_3.push(self.input[2]-self.pos[2]);
+
+        let l = self.diff_1.len();
+        if l > 20{
+            self.diff_1.remove(0);
+            self.diff_2.remove(0);
+            self.diff_3.remove(0);
+        }
+    }
+
+    fn update_time(&mut self){
+        let t_cur = Instant::now();
+        self.t.push(t_cur.duration_since(self.prev_instant).as_secs_f32());
+        let l = self.t.len();
+        if l > 20 {
+            self.t.remove(0);
+        }
 
     }
+
 
     fn f32_PWM_output(&self, mut num: f32) -> i32{
         ((num+2.0)*255.0/2.0).round() as i32
@@ -137,14 +159,17 @@ pub fn constructor(leg_num: usize) -> Legs{
         output: Vec::new(),
 
         pos: vec![0.0;3],
-        pos_integral: vec![0.0;3],
-        held_diff: vec![0.0;3],
 
         dev_pin: pins[leg_num],
         coms: None,
 
-        t: Instant::now(),
-        dt: Duration::from_millis(0),
+        t: Vec::new(),
+        prev_instant: Instant::now(),
+
+        diff_1: Vec::new(),
+        diff_2: Vec::new(),
+        diff_3: Vec::new(),
+
     };
     leg
 }

@@ -1,6 +1,8 @@
 mod communication;
 mod init;
 mod movement;
+use crate::movement::legs;
+use crate::movement::legs::Legs;
 extern crate chrono;
 
 fn main() {
@@ -14,11 +16,20 @@ fn main() {
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
 
+
+
     let mut com = init::startup(); //calling initial connection to the laptop
 
+    let mut leg: Vec<Legs> = Vec::new();
+  
+    for x in 0..4 as usize {
+      leg[x] = legs::constructor(x)
+    }
+
+
     loop {
-        let mut rdata: std::vec::Vec<f32> = Vec::new(); //init new vectors for data
-        let mut sdata = Vec::new();
+        let rdata: std::vec::Vec<f32> = Vec::new(); //init new vectors for data
+        let sdata = Vec::new();
         //stage data to be sent by placing it in the coms object
         com.sdata = sdata;
 
@@ -30,6 +41,9 @@ fn main() {
             }
         } //sending the data
 
+        for x in 0..4 as usize{
+            leg[x].movement();
+        }
         
         /*
         match com.spi_comms() {

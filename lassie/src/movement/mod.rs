@@ -9,7 +9,6 @@ fn to_degrees(data: Vec<i32>) -> Result<Vec<f32>, Box<dyn Error>>{
     let mut degrees: Vec<f32> = Vec::new();
     loop {
         degrees.push(((data[i]/pwm_lims[1]) as f32)*(angles[1] as f32));
-        i += 1;
         if i == l || i > l{
             break
         }
