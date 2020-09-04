@@ -5,21 +5,20 @@ use crate::movement::legs;
 use crate::movement::legs::Legs;
 extern crate chrono;
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION"); // Grab version number meta data
+const AUTHORS: &'static str = env!("CARGO_PKG_AUTHORS"); // Grab my name from meta data
+
+
 fn main() {
     // this code will implimented on the raspberry pi and communicate with the the host computer
-
-    const VERSION: &'static str = env!("CARGO_PKG_VERSION"); // Grab version number meta data
-    const AUTHORS: &'static str = env!("CARGO_PKG_AUTHORS"); // Grab my name from meta data
 
     println!("\n\nLassie, The Best Dog"); // start by printing the version number to the terminal
     println!("\nVersion Number {}", VERSION);
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
 
-
-
-    let mut com = init::startup(); //calling initial connection to the laptop
-
+    let mut com = init::startup(); //calling 
+    // right now legs are defined in the main class but I expect this to change over time 
     let mut leg: Vec<Legs> = Vec::new();
   
     for x in 0..4 as usize {

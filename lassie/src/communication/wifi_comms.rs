@@ -72,7 +72,7 @@ impl Wifi_Comms<'_> {
                 }
             }
             //send the data (currently as bytes) to be parsed into a float vector
-            communication::data_parsing(&mut temp, &buffer.to_vec())?;
+            communication::data_parsing_f32(&mut temp, &buffer.to_vec())?;
 
             //setting that the comm data value
             self.rdata = temp;

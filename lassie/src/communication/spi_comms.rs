@@ -1,12 +1,15 @@
 use byteorder::{ByteOrder, LittleEndian}; //used for f32 conversion
 use rppal::gpio::Gpio; //used to manually select spi devices in spi communication
 use rppal::spi::{Bus, Mode, SlaveSelect, Spi}; //used to do spi communication
+use rppal::spi::Segment;
 use std::error::Error; //defines the Error class used for the spi communication
 use std::io::prelude::*; //honestly cant remember what this is used for but its important
 use std::net::TcpListener; //used to bind a listener to a port
 use std::net::TcpStream; //used for tcp communication
 use std::{thread, time}; //used to give a minor pause after sending data over spi to allow it time to process the data
 use crate::communication;
+
+const SPI_BUFFER_LENGTH: usize= 20;
 /*******************************************
  * Comms:
  * The communication class for the lassie software. The contents and methods for sending and recieving all data
@@ -44,55 +47,28 @@ impl Spi_Comms {
                                                      //if there is a connection, then:
         if self.spi_connection {
             //package the sending data to the buffer
-
-            ////////////////////////////////////////////////////////////////////////////////
-            /// TEST CODE FOR TESTING PURPOSES NEEDS TO CHANGE IN THE FUTURE ///////////////
-            ////////////////////////////////////////////////////////////////////////////////
             //self.data_packaging(&self.rx, &mut buffer)?;
-            communication::data_packaging_i32(&self.rx,&mut buffer);
+            communication::data_packaging_i32(&self.tx,&mut buffer)?;
             let mut pin = Gpio::new()?.get(self.dev)?.into_output();
-
+            let mut buffer_r = [0u8; SPI_BUFFER_LENGTH];
             //set CS pin to low to start transfer
-            pin.set_low();
+    
             //write to device if it is connected
             match self.spi.as_mut() {
                 None => (),
                 Some(t) => {
-                    t.write(&mut buffer[..])?;
+                    pin.set_low();
+                    t.transfer(&mut buffer_r, &buffer)?;
+                    pin.set_high();
                 }
             }
+            
+            let mut temp: Vec<i32> = Vec::new();
             //end comm by setting pin back to high
-            pin.set_high();
+            communication::data_parsing_i32(&mut temp, &buffer_r.to_vec())?;
+            self.rx = temp;
             //pause for a second to allow the arduino to process
             thread::sleep(pause);
-
-            //I will need to adjust this whole section I think using spi::segments
-            let mut buffer = [0u8; 20];
-
-            pin.set_low();
-            self.spi.as_mut().unwrap().read(&mut buffer[..])?;
-            pin.set_high();
-            
-            //TO-DO: rewrite using the transfer function
-            let l = buffer.len();
-            if &buffer[0..=3] == "star".as_bytes() && &buffer[l - 3..=l] == "done".as_bytes() {
-                self.rx = Vec::new();
-                let mut i = 4;
-                let mut j = 7;
-                let mut pos = &buffer[i..j];
-                loop {
-                    if j == l {
-                        break;
-                    } else if i > 100 {
-                        println!("There was an error reading from spi, rx is messed up now");
-                        break;
-                    }
-                    self.rx.push(LittleEndian::read_i32(&pos[..]));
-                    i += 4;
-                    j += 4;
-                    pos = &buffer[i..j];
-                }
-            }
         } else {
             println!("Not Connected to Spi bus!!")
         }
