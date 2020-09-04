@@ -4,14 +4,13 @@ from struct import pack, unpack
 from bitstring import BitArray
 
 # Initiate communication with ras-pi at it's IP and port number
-#TO-DO add in passing of addr and port
 class Network():
-    def __init__(self):
+    def __init__(self, addr, port):
         self.connection = False
         self.rdata = []
         self.sdata = []
-        self.PORT = 2000
-        self.addr = "192.168.1.3"
+        self.PORT = port
+        self.addr = addr
         self.s = None 
 
     def comm_init(self):
@@ -22,14 +21,17 @@ class Network():
                 self.s.connect((self.addr,self.PORT))
                 self.connection = True
             except ConnectionError:
-                print("There was an error connecting to pi")
+                print("There was an error when connecting to pi")
                 self.connection = False
             except TimeoutError:
                 print("The connection timed out")
                 self.connection = False
+            except:
+                print("There was an error when connecting to pi")
             if self.connection == True:
                 break
             elif itr>5:
+                print("There was an error when connecting to pi")
                 break
             else:
                 print("Connection Attempt: ", itr)
@@ -54,8 +56,8 @@ class Network():
 
         except TimeoutError:
             print("There was a timeout")
-
-#TO-DO: add a break here if ther is a failure, add a general except condition
+        except:
+            print("There was an error in the data exchange function")
         
         buffer = []
         BufferSize = 512
@@ -82,9 +84,9 @@ class Network():
                     else:
                         temp = list(unpack('f',buf))
                         temp_data.append(temp[0])
-                
-#TO-DO: Add error handling here 
 
         except ConnectionError:
             print("Error Recieving data")
+        except:
+            print("There was an error in the data exchange file")
     

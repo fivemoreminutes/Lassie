@@ -1,4 +1,5 @@
 pub mod legs;
+pub mod control;
 use std::error::Error;
 
 fn to_degrees(data: Vec<i32>) -> Result<Vec<f32>, Box<dyn Error>>{
@@ -15,3 +16,4 @@ fn to_degrees(data: Vec<i32>) -> Result<Vec<f32>, Box<dyn Error>>{
     }
 Ok(degrees)
 }
+

@@ -1,8 +1,9 @@
 import tkinter as tk
 import SendData as SD
-
+import time 
 CONNECTION_ERROR = "Not Connected to Pi, cannot send data"
-        
+addr = "192.168.0.3"
+port = 2000        
 class Application(tk.Frame):
     def __init__(self, master=None): #initializes the window
         super().__init__(master)
@@ -13,7 +14,7 @@ class Application(tk.Frame):
         self.text1.set("Connection Status: Not Connected")
         self.text_color.set("red")
         self.configure(bg = 'snow3')
-        self.net = SD.Network()
+        self.net = SD.Network(addr,port)
         for x in range(1,4):
             tk.Grid.columnconfigure(self,x,weight = 1)
             tk.Grid.rowconfigure(self,x,weight = 1) 
@@ -77,7 +78,6 @@ class Application(tk.Frame):
         else:
             print(CONNECTION_ERROR)
 
-#TO-DO:add a network error handling for the next three functions
     def test_button_press(self): 
         if self.net.sdata[0] > 3.0:
             self.net.sdata[0] = 0.01
@@ -86,16 +86,23 @@ class Application(tk.Frame):
 
     def connect(self):
         if self.net.connection == False:
-            self.net.comm_init()
-            if self.net.connection == True:
-                self.text1.set("Connection Status: Connected") 
-                self.connection_status.config(fg = "green")
+            try:
+                self.net.comm_init()
+                if self.net.connection == True:
+                    self.text1.set("Connection Status: Connected") 
+                    self.connection_status.config(fg = "green")
+            except:
+                print("There was an error in the connection")
     
     def disconnect(self):
-        self.net.disconnect()
-        if self.net.connection == False:
-            self.text1.set("Connection Status: Not Connected") 
-            self.connection_status.config(fg = "red")
+        try:
+            self.net.disconnect()
+            print("Connection closed successfully")
+            if self.net.connection == False:
+                self.text1.set("Connection Status: Not Connected") 
+                self.connection_status.config(fg = "red")
+        except: 
+            print("There was an error in closing the connection")
 
 root = tk.Tk()
 root.geometry("1000x900")
@@ -105,8 +112,6 @@ app = Application(master=root)
 app.net.rdata = [0.02, 0.03, 0.04, 0.05, 0.06]
 app.net.sdata = [0.02, 0.03, 0.04, 0.05, 0.06]
 
-#TO-DO: look into making this effecient
-#potentially add a wait time to the loop 
 while True:
     root.update_idletasks()
     root.update()
@@ -116,7 +121,7 @@ while True:
             print(app.net.rdata)
         except:
             print("There was an error in sending data")
-
+    time.sleep(5*0.001)
     
 
         
