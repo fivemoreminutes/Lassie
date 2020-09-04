@@ -23,7 +23,12 @@ fn main() {
     let mut leg: Vec<Legs> = Vec::new();
   
     for x in 0..4 as usize {
-      leg[x] = legs::constructor(x)
+      leg[x] = legs::constructor(x);
+      match leg[x].init_spi(){
+          Ok(()) => (),
+          Err(e) => {println!("There was an error: {:?}", e);
+          panic!();},
+      };
     }
 
 
@@ -44,7 +49,7 @@ fn main() {
         for x in 0..4 as usize{
             leg[x].movement();
         }
-        
+
         /*
         match com.spi_comms() {
             Ok(()) => (),
