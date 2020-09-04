@@ -14,15 +14,12 @@ const SPI_BUFFER_LENGTH: usize= 20;
  * Comms:
  * The communication class for the lassie software. The contents and methods for sending and recieving all data
  * are contained inside this class. These include the following methods:
- *
- * listen: waits and listens for a new tcp stream by listening on a set address and socket on the local network
- * wifi_comms:sends and recieves data and returns it to the self.sdata and self.rdata respectively
+
  * spi_init:initiates the spi communication and the pins for communication
  * spi_comms: actually sending data over spi, will eventuntually take in an int for device select
- * data_packaging: takes a f32 vector and converts it to a byte array with a starting and ending phrase to parse data
- *
+
  * Special mention:
- * build_comms: the constructor for the comms class as a ~~function~~ that can be called to create a comms object without
+ * build_comms: the constructor for the Spi_Comms class as a ~~function~~ that can be called to create a comms object without
  * having to make all the data fields in the object public
  *
  * ***************************************/
