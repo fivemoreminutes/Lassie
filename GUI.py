@@ -225,7 +225,8 @@ while True:
     if app.net.connection == True:
         try:
             output = app.net.data_exchange()
-            if output != None
+
+            if output is not None:
                 root.output_term.insert(tk.INSERT, output)
                 root.output_term.see(tk.END)
 
