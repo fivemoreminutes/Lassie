@@ -2,6 +2,12 @@ import socket
 import numpy as np
 from struct import pack, unpack
 from bitstring import BitArray
+import tkinter as tk
+
+SCRIPT = "[Send Data] "
+INFO = "[INFO] "
+WARNING = "[WARNING] "
+
 
 # Initiate communication with ras-pi at it's IP and port number
 class Network():
@@ -13,29 +19,24 @@ class Network():
         self.addr = addr
         self.s = None 
 
-    def comm_init(self):
-        itr = 1
+    def comm_init(self,itr):
         while True:
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:  # if there is an error it should return the error type to main
                 self.s.connect((self.addr,self.PORT))
                 self.connection = True
+                return "T"
             except ConnectionError:
-                print("There was an error when connecting to pi")
+                Message = "There was a Connection Error"
                 self.connection = False
+                return WARNING + SCRIPT + Message + "\n>>"
             except TimeoutError:
-                print("The connection timed out")
+                Message = "There was a Timeout Error"
                 self.connection = False
+                return WARNING + SCRIPT + Message + "\n>>"
             except:
-                print("There was an error when connecting to pi")
-            if self.connection == True:
-                break
-            elif itr>5:
-                print("There was an error when connecting to pi")
-                break
-            else:
-                print("Connection Attempt: ", itr)
-                itr += 1
+                Message = "Unclassified Error"
+                return WARNING + SCRIPT + Message + "\n>>"
     
     def disconnect(self):
         if self.connection == True:
@@ -52,12 +53,15 @@ class Network():
             self.s.send(buffer)
                 
         except ConnectionError:
-            print("Connection Error")
+            Message = "There was a Connection Error"
+            return WARNING + SCRIPT + Message + "\n>>"
 
         except TimeoutError:
-            print("There was a timeout")
+            Message = "There was a timeout Error"
+            return WARNING + SCRIPT + Message + "\n>>"
         except:
-            print("There was an error in the data exchange function")
+            Message = "Unclassified Error"
+            return WARNING + SCRIPT + Message + "\n>>"
         
         buffer = []
         BufferSize = 512
@@ -84,9 +88,11 @@ class Network():
                     else:
                         temp = list(unpack('f',buf))
                         temp_data.append(temp[0])
-
+            return None
         except ConnectionError:
-            print("Error Recieving data")
+            Message = "There was an Connection Error"
+            return WARNING + SCRIPT + Message + "\n>>"
         except:
-            print("There was an error in the data exchange file")
+            Message = "Unclassified Error"
+            return WARNING + SCRIPT + Message + "\n>>"
     
