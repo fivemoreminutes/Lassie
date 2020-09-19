@@ -4,7 +4,7 @@ use std::error::Error;
 use crate::communication::spi_comms::Spi_Comms;
 use crate::communication::spi_comms;
 use crate::movement;
-
+use std::{thread, time};
 
 const BUFFER_LENGTH: usize = 20; //buffer length for the integral controller
 
@@ -134,6 +134,21 @@ impl Legs {
         };
         Ok(())
     }
+
+    pub fn test_spi_Coms(&mut self){
+        match self.coms.as_mut() {
+            Some(T) => {
+                T.tx = [200, 200, 200, 200].to_vec();
+                T.spi_comms();
+                
+                thread::sleep(time::Duration::from_millis(500));
+
+                T.tx = [0, 0, 0, 0].to_vec();
+                T.spi_comms();
+            },
+            None => (),
+        };
+    }
 }//end of legs class
 
 //constructs the legs class 
@@ -154,7 +169,7 @@ pub fn constructor(leg_num: usize) -> Legs{
                    1.0, 1.0, 1.0,
                    1.0, 1.0, 1.0]; //derivative constant for each motor of each leg
 
-    let pins: [u8;4] =[23, 24, 25, 26]; //device pins TO-DO: update these to be accurate to actual device connections 
+    let pins: [u8;4] =[6, 13, 19, 26]; //device pins TO-DO: update these to be accurate to actual device connections 
 
     let index: usize = leg_num*3; //indexing for the legs class
 

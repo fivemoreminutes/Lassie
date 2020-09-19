@@ -52,6 +52,7 @@ impl Wifi_Comms<'_> {
         }
     }
 
+        //To-Do: Write real error below
     pub fn wifi_comms(&mut self) -> Result<(), Box<dyn Error>> {
         //These are my key words for defining the start and end of a data package for both wifi and spi comms
         //creating a buffer to read data into

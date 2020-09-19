@@ -17,5 +17,4 @@ pub fn startup<'a>(leg: &mut Vec<Legs>, com:&mut Wifi_Comms) {
         panic!();},
     };
   }
-
 }

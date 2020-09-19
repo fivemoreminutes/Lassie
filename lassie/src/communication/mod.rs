@@ -4,6 +4,8 @@ pub mod wifi_comms;
 use std::error::Error;
 use byteorder::{ByteOrder, LittleEndian};
 
+
+//TO-DO: dont do single letter variables for non iterators *(l to length)
 pub fn data_packaging_f32(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), Box<dyn Error>> {
     //this is the sister function to the data parsing code, where data is taken from a float and transitioned to bytes
     let mut buffer1 = [0; 4];
@@ -14,6 +16,7 @@ pub fn data_packaging_f32(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), B
 
     buffer.append(&mut start_c.to_vec());
     if l == 0 {
+        //To-Do: Actually write an Error for this
         Err("There was an Error")? //this is a jank way of returning a dyn error
     } 
     else {
@@ -23,7 +26,7 @@ pub fn data_packaging_f32(data: &Vec<f32>, buffer: &mut Vec<u8>) -> Result<(), B
             buffer.append(&mut buffer1.to_vec());
 
             i += 1;
-            if i == l {
+            if i >= l {
                 break;
             }
         }
@@ -72,6 +75,8 @@ pub fn data_parsing_f32(data: &mut Vec<f32>, buffer: &Vec<u8>,) -> Result<(), Bo
     let mut i = 4; //iterators
     let mut j = 7;
 
+    //To-Do: Add error case for if exceeding length of buffer, replace j with i+3
+
     if &buffer.len() > &0 {
         start = &buffer[0..=3];
         if start == start_c {
@@ -84,6 +89,8 @@ pub fn data_parsing_f32(data: &mut Vec<f32>, buffer: &Vec<u8>,) -> Result<(), Bo
                     break 'inner;
                 }
                 //if slice is equal to first phrase again disregard data as there was likely an error
+                
+                //TO-Do: look into adding a log using this condition
                 else if pos == start_c {
                     break 'inner;
                 }

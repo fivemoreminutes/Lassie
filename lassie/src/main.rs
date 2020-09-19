@@ -18,6 +18,7 @@ fn main() {
     println!("\nVersion Number {}", VERSION);
     println!("\nMade by {}", AUTHORS);
     println!("\n{:?}\n\n", chrono::offset::Local::now());
+    
     let mut leg: Vec<Legs> = Vec::new();
     let mut com = wifi_comms::build_comms("192.168.1.3:2000");
 
@@ -39,13 +40,13 @@ fn main() {
         } //sending the data
 
         for x in 0..4 as usize{
-            leg[x].movement();
+            leg[x].test_spi_Coms();
         }
 
-        let l = com.rdata.len(); //outputting the data
-        for x in 0..l {
-            print!(" {} ", com.rdata[x]);
-        }
-        print!("\n")
+        //let l = com.rdata.len(); //outputting the data
+        //for x in 0..l {
+        //    print!(" {} ", com.rdata[x]);
+        //}
+        //print!("\n")
     }
 }
