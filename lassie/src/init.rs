@@ -10,7 +10,7 @@ pub fn startup<'a>(leg: &mut Vec<Legs>, com:&mut Wifi_Comms) {
   com.listen(); //start a tcp connection
 
   for x in 0..4 as usize {
-    leg[x] = legs::constructor(x);
+    leg.push(legs::constructor(x));
     match leg[x].init_spi(){
         Ok(()) => (),
         Err(e) => {println!("There was an error: {:?}", e);

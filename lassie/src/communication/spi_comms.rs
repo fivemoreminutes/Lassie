@@ -9,7 +9,7 @@ use std::net::TcpStream; //used for tcp communication
 use std::{thread, time}; //used to give a minor pause after sending data over spi to allow it time to process the data
 use crate::communication;
 
-const SPI_BUFFER_LENGTH: usize= 20;
+const SPI_BUFFER_LENGTH: usize= 24;
 /*******************************************
  * Comms:
  * The communication class for the lassie software. The contents and methods for sending and recieving all data
@@ -49,22 +49,35 @@ impl Spi_Comms {
             let mut pin = Gpio::new()?.get(self.dev)?.into_output();
             let mut buffer_r = [0u8; SPI_BUFFER_LENGTH];
             //set CS pin to low to start transfer
-    
+            //println!("{}", buffer_r.to_vec().len());
             //write to device if it is connected
             match self.spi.as_mut() {
                 None => (),
                 Some(t) => {
                     pin.set_low();
+                    thread::sleep(pause);
                     t.transfer(&mut buffer_r, &buffer)?;
+                    //t.write(&buffer)?;
+                    //t.read(&mut buffer_r)?;
+                    //thread::sleep(time::Duration::from_millis(1000));
                     pin.set_high();
                 }
             }
             
             let mut temp: Vec<i32> = Vec::new();
             //end comm by setting pin back to high
+            
             communication::data_parsing_i32(&mut temp, &buffer_r.to_vec())?;
+            //println!("{}", temp.to_vec().len());
             self.rx = temp;
             //pause for a second to allow the arduino to process
+            if self.rx.len() > 0 {
+                for i in 0..self.rx.len() as usize{
+                    print!("{} ", self.rx[i]);
+                }
+                println!("");
+            }
+            
             thread::sleep(pause);
         } else {
             println!("Not Connected to Spi bus!!")
@@ -74,7 +87,7 @@ impl Spi_Comms {
 
     pub fn spi_init(&mut self) -> Result<(), Box<dyn Error>> {
         //sets up a new spi connection on bus Spi0 and a slave select, though the CS pin is essentially ignored
-        match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 1_000_000, Mode::Mode0) {
+        match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 500000, Mode::Mode0) {
             Ok(spi) => {
                 self.spi = Some(spi);
                 self.spi_connection = true;

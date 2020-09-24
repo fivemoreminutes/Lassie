@@ -42,7 +42,9 @@ fn main() {
         for x in 0..4 as usize{
             leg[x].test_spi_Coms();
         }
+        //leg[0].test_spi_Coms();
 
+        println!("Looped\n")
         //let l = com.rdata.len(); //outputting the data
         //for x in 0..l {
         //    print!(" {} ", com.rdata[x]);

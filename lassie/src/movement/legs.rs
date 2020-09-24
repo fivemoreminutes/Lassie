@@ -31,7 +31,7 @@ pub struct Legs {
     diff_3: Vec<f32>,
 
     dev_pin: u8, //device pin on the rasp. pi
-    coms: Option<Spi_Comms>, //spi comms object for communication with the arduino
+    pub coms: Option<Spi_Comms>, //spi comms object for communication with the arduino
 }
 
 impl Legs {
@@ -128,7 +128,7 @@ impl Legs {
                 T.spi_init()?; //attempt to connect to the device over spi, error out if there is a problem
                 T.tx = vec![0;3]; //creating an empty vector to get data back
                 T.spi_comms()?; //communicating to update postions in the comms.rx location
-                self.update_pos();//updating the positions in the legs 
+                //self.update_pos();//updating the positions in the legs 
                         },
             None => println!("SPI communication could not be initiated")
         };
@@ -141,10 +141,11 @@ impl Legs {
                 T.tx = [200, 200, 200, 200].to_vec();
                 T.spi_comms();
                 
-                thread::sleep(time::Duration::from_millis(500));
+                thread::sleep(time::Duration::from_millis(100));
 
                 T.tx = [0, 0, 0, 0].to_vec();
                 T.spi_comms();
+                thread::sleep(time::Duration::from_millis(100));
             },
             None => (),
         };
