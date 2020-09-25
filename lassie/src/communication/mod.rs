@@ -1,6 +1,6 @@
 pub mod spi_comms;
 pub mod wifi_comms;
-
+use std::convert::TryInto;
 use std::error::Error;
 use byteorder::{ByteOrder, LittleEndian};
 
@@ -118,22 +118,13 @@ pub fn data_parsing_i32(data: &mut Vec<i32>, buffer: &Vec<u8>,) -> Result<(), Bo
     let start_c = "star".as_bytes(); //start phrase
     let end_c = "done".as_bytes(); //ending phrase
     let mut temp: std::vec::Vec<i32> = Vec::new(); //for storing data before verifying end
-    let mut i = 4; //iterators
-    let mut j = 7;
+    let mut i = 5; //iterators
+    let mut j = i+3;
 
     if &buffer.len() > &0 {
             'inner: loop {
                 //grab a slice
                 let pos = &buffer[i..=j];
-                //if slice is equal to the end phrase, write temp to the output data
-                //if pos == end_c {
-                  //  data.append(&mut temp);
-                  //  break 'inner;
-                //}
-                //if slice is equal to first phrase again disregard data as there was likely an error
-                //else if pos == start_c {
-                //    break 'inner;
-                //}
                 //if length of temp data was over 100 there is a problem and system panics
                 if temp.len() > 100 {
                     println!("There was an error");
@@ -141,7 +132,7 @@ pub fn data_parsing_i32(data: &mut Vec<i32>, buffer: &Vec<u8>,) -> Result<(), Bo
                 }
                 //data is pushed to temp if there is nothing else needed
                 else {
-                    data.push(LittleEndian::read_i32(&pos[..]));
+                    data.push(i32::from_le_bytes(pos.try_into().unwrap()));
                 }
                 i += 4; //iterators
                 j += 4;

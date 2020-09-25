@@ -55,11 +55,7 @@ impl Spi_Comms {
                 None => (),
                 Some(t) => {
                     pin.set_low();
-                    thread::sleep(pause);
                     t.transfer(&mut buffer_r, &buffer)?;
-                    //t.write(&buffer)?;
-                    //t.read(&mut buffer_r)?;
-                    //thread::sleep(time::Duration::from_millis(1000));
                     pin.set_high();
                 }
             }
@@ -68,15 +64,8 @@ impl Spi_Comms {
             //end comm by setting pin back to high
             
             communication::data_parsing_i32(&mut temp, &buffer_r.to_vec())?;
-            //println!("{}", temp.to_vec().len());
             self.rx = temp;
             //pause for a second to allow the arduino to process
-            if self.rx.len() > 0 {
-                for i in 0..self.rx.len() as usize{
-                    print!("{} ", self.rx[i]);
-                }
-                println!("");
-            }
             
             thread::sleep(pause);
         } else {
@@ -87,7 +76,7 @@ impl Spi_Comms {
 
     pub fn spi_init(&mut self) -> Result<(), Box<dyn Error>> {
         //sets up a new spi connection on bus Spi0 and a slave select, though the CS pin is essentially ignored
-        match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 500000, Mode::Mode0) {
+        match Spi::new(Bus::Spi0, SlaveSelect::Ss0, 250000, Mode::Mode0) {
             Ok(spi) => {
                 self.spi = Some(spi);
                 self.spi_connection = true;
